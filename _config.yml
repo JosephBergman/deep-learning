@@ -1,0 +1,28 @@
+# Site settings
+title:          Deep Learning
+description:    "Project based blog on deep learning"
+url:            "http://josephbergman.com"
+
+# Author
+author:
+  name:         Joseph Bergman
+  url:          http://josephbergman.com
+  email:        Joseph.T.Bergman@gmail.com
+
+# Build settings
+markdown:       kramdown
+
+# Assets
+sass:
+  sass_dir:     _sass
+  style:        compressed
+
+# Gems
+plugins:
+  - jekyll-feed
+  - jekyll-paginate
+  # - jemoji #Uncomment this to allow emoji in your post
+
+# Permalinks
+permalink:      /:year-:month-:day/:title
+paginate:       5
