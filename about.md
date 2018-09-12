@@ -1,15 +1,21 @@
 ---
 layout: post
 title: "About"
-author: "Chester"
 permalink: /about/
 ---
 
-A friend of mine writes short stories. One sunny day, I asked if he wanted a website to showcase his works and he agreed. I decided to use GitHub Pages to host his site. That way he wouldn't have to buy a domain and a server.
+## Hello!
+My name is Joseph Bergman. I am a senior at the University of Maryland majoring in computer science and finance and minoring in mathematics. This semester (Fall 2018) I am studying abroad at Yonsei University in Seoul, South Korea. I am a business major at Yonsei, so I am taking a marketing class, a macroeconomics class, and a Korean language class. In addition to my Yonsei classes, I have arranged to independently study deep learning ([CMSC 498A](http://undergrad.cs.umd.edu/independent-study-cmsc498a)) through UMD while abroad. My independent study advisor is [Professor John Dickerson](https://www.cs.umd.edu/people/dickerson).
 
-While doing some research up on GitHub Pages, I accidentally chanced upon this _simple, blog-aware, static site generator_ called [Jekyll](https://jekyllrb.com/) which works really well with GitHub Pages. I figured it would do just fine for my friend and I set about searching for a pretty theme. I wanted a theme with a _book-ish_ vibe. Unfortunately, most of the themes were too modern. Eventually, I caved and begun working on my own theme. With the help of [Poole](https://github.com/poole/poole), the Jekyll Butler, I was able to build **Tale**.
+## The Blog
+This blog is the "deliverable" for my independent study. Each month, I will complete a deep learning project based on what I have been learning. Blog posts will be written as project-based tutorials so that a reader could easily follow along to reproduce the projects -- and hopefully learn something about deep learning in the process. Data, source code, and even this blog can be found on my [GitHub](https://github.com/JosephBergman/deep-learning).
 
-## Contribute
-Feel free to create an issue or make a pull request on [GitHub](https://github.com/chesterhow/tale).
+## Resources
+I used the following resources for learning and inspiration.
++ [Coursera: Deep Learning Specialization](https://www.coursera.org/specializations/deep-learning)
++ [Fast AI: Practical Deep Learning for Coders](http://course.fast.ai/)
++ [Neural Networks and Deep Learning](http://neuralnetworksanddeeplearning.com/)
 
-Thanks for reading!
+## Datasets
+My blog posts make use of the following datasets.
++ TBD!
