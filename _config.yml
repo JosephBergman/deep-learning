@@ -11,6 +11,7 @@ author:
 
 # Build settings
 markdown:       kramdown
+future:         true
 
 # Assets
 sass:
