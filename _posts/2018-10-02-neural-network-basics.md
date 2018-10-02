@@ -3,6 +3,7 @@ layout: post
 title: "Neural Network Basics"
 published: 2018-10-02
 updated: 2018-10-02
+preview: "What do neural networks do and how do they do it?"
 ---
 
 Throughout the next few posts we will answer the following three questions:

@@ -10,7 +10,11 @@ layout: default
         <div class="catalogue-line"></div>
 
         <p>
-          {{ post.content | strip_html | truncatewords: 30 }}
+            {% if post.preview %}
+                {{ post.preview | strip_html | truncatewords: 30 }}
+            {% else %}
+                {{ post.content | strip_html | truncatewords: 30 }}
+            {% endif %}
         </p>
 
       </div>
