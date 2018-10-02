@@ -10,7 +10,7 @@
           <h2 class="nav-title">{{ site.title }}</h2>
         </a>
         <ul>
-          <li><a href="{{ site.baseurl }}/">Posts</a></li>  
+          <li><a href="{{ site.baseurl }}/">Posts</a></li>
           <li><a href="{{ '/about' | prepend: site.baseurl }}">About</a></li>
         </ul>
       </div>
@@ -22,10 +22,12 @@
 
     <footer>
       <span>
-        &copy; <time datetime="{{ site.time }}">{{ site.time | date: '%Y' }}</time> {{ site.author.name }}.
-        Published on <time datetime="{{ page.date }}">{{ page.date | date: "%B %d, %Y" }}</time>.
+        Written by <a href="http://JosephBergman.com/">{{ site.author.name }}</a>{% if page.published %}.{% endif %}
+        {% if page.published %}
+            Published on <time datetime="{{ page.date }}">{{ page.date | date: "%B %d, %Y" }}</time>.
+        {% endif %}
         {% if page.updated != page.published %}
-        Updated on <time datetime="{{ page.updated }}">{{ page.date | date: "%B %d, %Y" }}</time>
+            Updated on <time datetime="{{ page.updated }}">{{ page.date | date: "%B %d, %Y" }}</time>
         {% endif %}
       </span>
     </footer>
