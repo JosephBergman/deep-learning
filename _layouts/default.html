@@ -22,7 +22,11 @@
 
     <footer>
       <span>
-        &copy; <time datetime="{{ site.time }}">{{ site.time | date: '%Y' }}</time> {{ site.author.name }}. Made with Jekyll using the <a href="https://github.com/chesterhow/tale/">Tale</a> theme.
+        &copy; <time datetime="{{ site.time }}">{{ site.time | date: '%Y' }}</time> {{ site.author.name }}.
+        Published on <time datetime="{{ page.date }}">{{ page.date | date: "%B %d, %Y" }}</time>.
+        {% if page.updated != page.published %}
+        Updated on <time datetime="{{ page.updated }}">{{ page.date | date: "%B %d, %Y" }}</time>
+        {% endif %}
       </span>
     </footer>
   </body>

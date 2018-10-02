@@ -1,0 +1,69 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="319px" height="116px" viewBox="0 0 319 116" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+    <!-- Generator: Sketch 44.1 (41455) - http://www.bohemiancoding.com/sketch -->
+    <title>Group 2</title>
+    <desc>Created with Sketch.</desc>
+    <defs></defs>
+    <g id="Page-1" stroke="none" stroke-width="1" fill="none" fill-rule="evenodd">
+        <g id="Group-2" transform="translate(-1.000000, 1.000000)">
+            <g id="Group">
+                <g id="nn">
+                    <path d="M29.3151768,24.900517 L142.102635,8.31412612" id="Shape" stroke="#505050" stroke-width="0.5" fill="#000000" fill-rule="nonzero"></path>
+                    <path d="M29.3151768,24.900517 L142.102635,41.4869079" id="Shape" stroke="#505050" stroke-width="0.5" fill="#000000" fill-rule="nonzero"></path>
+                    <path d="M29.3151768,24.900517 L142.102635,74.6596898" id="Shape" stroke="#505050" stroke-width="0.5" fill="#000000" fill-rule="nonzero"></path>
+                    <path d="M29.3151768,58.0732989 L142.102635,8.31412612" id="Shape" stroke="#505050" stroke-width="0.5" fill="#000000" fill-rule="nonzero"></path>
+                    <path d="M29.3151768,58.0732989 L142.102635,41.4869079" id="Shape" stroke="#505050" stroke-width="0.5" fill="#000000" fill-rule="nonzero"></path>
+                    <path d="M29.3151768,58.0732989 L142.102635,74.6596898" id="Shape" stroke="#505050" stroke-width="0.5" fill="#000000" fill-rule="nonzero"></path>
+                    <path d="M142.102635,8.31412612 L254.890093,41.4869079" id="Shape" stroke="#505050" stroke-width="0.5" fill="#000000" fill-rule="nonzero"></path>
+                    <path d="M142.102635,41.4869079 L254.890093,41.4869079" id="Shape" stroke="#505050" stroke-width="0.5" fill="#000000" fill-rule="nonzero"></path>
+                    <path d="M142.102635,74.6596898 L254.890093,41.4869079" id="Shape" stroke="#505050" stroke-width="0.5" fill="#000000" fill-rule="nonzero"></path>
+                    <circle id="0_0" stroke="#333333" stroke-width="0.829319546" fill="#FFFFFF" fill-rule="nonzero" cx="29.3151768" cy="24.900517" r="8.29319546"></circle>
+                    <circle id="0_1" stroke="#333333" stroke-width="0.829319546" fill="#FFFFFF" fill-rule="nonzero" cx="29.3151768" cy="58.0732989" r="8.29319546"></circle>
+                    <circle id="0_2" stroke="#333333" stroke-width="0.829319546" fill="#FFFFFF" fill-rule="nonzero" cx="142.102635" cy="8.31412612" r="8.29319546"></circle>
+                    <circle id="0_3" stroke="#333333" stroke-width="0.829319546" fill="#FFFFFF" fill-rule="nonzero" cx="142.102635" cy="41.4869079" r="8.29319546"></circle>
+                    <circle id="0_4" stroke="#333333" stroke-width="0.829319546" fill="#FFFFFF" fill-rule="nonzero" cx="142.102635" cy="74.6596898" r="8.29319546"></circle>
+                    <circle id="0_5" stroke="#333333" stroke-width="0.829319546" fill="#FFFFFF" fill-rule="nonzero" cx="254.890093" cy="41.4869079" r="8.29319546"></circle>
+                    <text id="Input-Layer-∈-ℝ²" fill="#000000" font-family="Helvetica" font-size="12" font-weight="normal">
+                        <tspan x="0.288992701" y="109.709957">Input Layer </tspan>
+                        <tspan x="63.6639927" y="109.709957" font-family="AppleSymbols, Apple Symbols">∈</tspan>
+                        <tspan x="70.5780552" y="109.709957"> </tspan>
+                        <tspan x="73.9120396" y="109.709957" font-family="ArialUnicodeMS, Arial Unicode MS">ℝ</tspan>
+                        <tspan x="81.9159458" y="109.709957">²</tspan>
+                    </text>
+                    <text id="Hidden-Layer-∈-ℝ³" fill="#000000" font-family="Helvetica" font-size="12" font-weight="normal">
+                        <tspan x="113.076451" y="109.709957">Hidden Layer </tspan>
+                        <tspan x="187.789342" y="109.709957" font-family="AppleSymbols, Apple Symbols">∈</tspan>
+                        <tspan x="194.703404" y="109.709957"> </tspan>
+                        <tspan x="198.037388" y="109.709957" font-family="ArialUnicodeMS, Arial Unicode MS">ℝ</tspan>
+                        <tspan x="206.041295" y="109.709957">³</tspan>
+                    </text>
+                    <text id="Output-Layer-∈-ℝ¹" fill="#000000" font-family="Helvetica" font-size="12" font-weight="normal">
+                        <tspan x="225.863909" y="109.709957">Output Layer </tspan>
+                        <tspan x="298.572894" y="109.709957" font-family="AppleSymbols, Apple Symbols">∈</tspan>
+                        <tspan x="305.486956" y="109.709957"> </tspan>
+                        <tspan x="308.82094" y="109.709957" font-family="ArialUnicodeMS, Arial Unicode MS">ℝ</tspan>
+                        <tspan x="316.824847" y="109.709957">¹</tspan>
+                    </text>
+                </g>
+                <text id="x1" font-family="SFUIDisplay-Regular, SF UI Display" font-size="10" font-weight="normal" fill="#313237">
+                    <tspan x="25" y="27">x1</tspan>
+                </text>
+                <text id="x2" font-family="SFUIDisplay-Regular, SF UI Display" font-size="10" font-weight="normal" fill="#313237">
+                    <tspan x="24" y="61">x2</tspan>
+                </text>
+            </g>
+            <text id="h1" font-family="SFUIDisplay-Regular, SF UI Display" font-size="10" font-weight="normal" fill="#313237">
+                <tspan x="138" y="11">h1</tspan>
+            </text>
+            <text id="h2" font-family="SFUIDisplay-Regular, SF UI Display" font-size="10" font-weight="normal" fill="#313237">
+                <tspan x="137" y="44">h2</tspan>
+            </text>
+            <text id="y" font-family="SFUIDisplay-Regular, SF UI Display" font-size="10" font-weight="normal" fill="#313237">
+                <tspan x="253" y="44">y</tspan>
+            </text>
+            <text id="h3" font-family="SFUIDisplay-Regular, SF UI Display" font-size="10" font-weight="normal" fill="#313237">
+                <tspan x="137" y="78">h3</tspan>
+            </text>
+        </g>
+    </g>
+</svg>

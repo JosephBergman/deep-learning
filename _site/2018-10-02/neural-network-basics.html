@@ -1,0 +1,398 @@
+<!DOCTYPE html>
+<html lang="en">
+
+  <head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+
+  <title>
+    
+      Neural Network Basics &middot; Deep Learning
+    
+  </title>
+
+  <!-- CSS -->
+  <link rel="stylesheet" href="/assets/main.css">
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Libre+Baskerville:400,400i,700">
+
+  <!-- MathJax -->
+  <script type="text/javascript" async src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-MML-AM_CHTML"></script>
+
+  <!-- Favicon -->
+  <link rel="icon" type="image/png" sizes="32x32" href="/assets/favicon-32x32.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/assets/favicon-16x16.png">
+  <link rel="apple-touch-icon" sizes="180x180" href="/assets/apple-touch-icon.png">
+
+  <!-- RSS -->
+  <link type="application/atom+xml" rel="alternate" href="http://localhost:4000/feed.xml" title="Deep Learning" />
+</head>
+
+
+  <body>
+    <nav class="nav">
+      <div class="nav-container">
+        <a href="/">
+          <h2 class="nav-title">Deep Learning</h2>
+        </a>
+        <ul>
+          <li><a href="/about">About</a></li>
+          <li><a href="/">Posts</a></li>
+        </ul>
+      </div>
+    </nav>
+
+    <main>
+      <div class="post">
+
+  <h1 class="post-title">Neural Network Basics</h1>
+  <div class="post-line"></div>
+
+  <p>Throughout the next few posts we will answer the following three questions:</p>
+
+<ol>
+  <li>What is a neural network?</li>
+  <li>What does a neural network compute?</li>
+  <li>How can we teach a neural network to “learn” from examples?</li>
+</ol>
+
+<p>This post will focus on the first question.</p>
+
+<hr />
+
+<h2 id="what-is-a-neural-network">What is a Neural Network?</h2>
+<p>An Artificial Neural Network (ANN), or simply “neural network”, is a biologically-inspired programming paradigm which enables a program to learn from data without being explicitly programmed. For example, we can show a neural network thousands of cat/not-cat photos and the neural network can learn on its own to predict whether or not a given photo contains a cat.</p>
+
+<p>Similar to the human brain, a neural network is composed of many smaller and simpler units known as “(artificial) neurons”. Individually, each neuron performs a relatively simple computation, but by feeding the output of one neuron into other neurons we can compute progressively more complex functions. Neural networks currently provide the best solutions to a number of problems in image recognition, speech recognition, and natural language processing.</p>
+
+<p><img src="/assets/post01/nn-example.svg" alt="Example of a Neural Network" width="200px" />
+<em>An example of a 5-layer neural network</em></p>
+
+<p>More precisely, a neural network is a map from some input space to a range of output values. The input space and output space will vary depending on the problem. For instance, the input could be a photo of a handwritten digit and the output would be some digit between 0 and 9. In a more complex case, the input could be some photo and the output could be a caption for that photo. What makes neural networks so powerful is that they can learn the mapping between the input and output just by looking at examples.</p>
+
+<p>Before we can understand how a neural network learns, we need to understand what a neural network does to map a given input to an output. And before we can understand how a neural network maps an input to an output, we need to understand what a single neuron does. We will begin by looking at the simplest type of artificial neuron – the perceptron.</p>
+
+<hr />
+
+<h2 id="the-perceptron">The Perceptron</h2>
+<p>A perceptron takes an arbitrary number of inputs <script type="math/tex">x_1, x_2, \dots</script> and generates a single binary output <script type="math/tex">a \in \{0, 1\}</script>. Each input <script type="math/tex">x_i</script> has a corresponding weight <script type="math/tex">w_i</script> which expresses how important that input is to the output. The perceptron also has a bias <script type="math/tex">b</script> which is a single real number and expresses how willing the perceptron is to “fire” (produce an output of 1).</p>
+
+<p>The perceptron computes its output in two steps. First, we multiply all the inputs by their corresponding weights and add the bias. This can be simplified by treating <script type="math/tex">x_i</script> and <script type="math/tex">w_i</script> as column vectors and taking their dot product:
+<script type="math/tex">z = w^T x + b</script></p>
+
+<p>Then, we compute the output according to the following function:</p>
+
+<script type="math/tex; mode=display">% <![CDATA[
+g(z) =
+\begin{cases}
+1, & \text{if $z > 0$} \\
+0, & \text{if $z \leq 0$}
+\end{cases} %]]></script>
+
+<p>The function <script type="math/tex">g(z)</script> is an example of an “activation function”, and will be the only thing that changes in our other neurons.</p>
+
+<h3 id="example-of-a-perceptron">Example of a Perceptron</h3>
+<p><img src="/assets/post01/perceptron-example.png" alt="Example of a Perceptron" />
+<em>(<a href="http://neuralnetworksanddeeplearning.com/chap1.html">source</a>)</em></p>
+
+<p>The perceptron above takes two inputs <script type="math/tex">x_1</script> and <script type="math/tex">x_2</script> which have corresponding weights <script type="math/tex">w_1 = -2</script> and <script type="math/tex">w_2 = -2</script> as shown. The perceptron has a bias of <script type="math/tex">b = 3</script>. The value of the output depends on the specific values of the inputs. For example, suppose <script type="math/tex">x_1 = 1</script> and <script type="math/tex">x_2 = 0</script>. Then</p>
+
+<script type="math/tex; mode=display">x =
+\begin{bmatrix}
+1 \\
+0 \\
+\end{bmatrix}
+
+\qquad
+
+w =
+\begin{bmatrix}
+-2 \\
+-2 \\
+\end{bmatrix}
+
+\qquad
+b = 3</script>
+
+<p>It follows that</p>
+
+<script type="math/tex; mode=display">% <![CDATA[
+\begin{align}
+z & = w^T x + b \\
+  & = (-2\cdot 1 + -2\cdot 0) + 3 \\
+  & = (-2) + 3 \\
+  & = 1
+\end{align} %]]></script>
+
+<p>Since this is positive our activation function gives us the following</p>
+
+<script type="math/tex; mode=display">% <![CDATA[
+\begin{align}
+\text{output} & = g(z) \\
+  & = g(1) \\
+  & = 1 \quad \text{since $z > 0$}
+\end{align} %]]></script>
+
+<h3 id="problems-with-the-perceptron">Problems with the Perceptron</h3>
+<p>Ultimately we want to devise algorithms which allow our neural network to learn the weights <script type="math/tex">w</script> and biases <script type="math/tex">b</script> on its own. To be able to learn, we want a small change to the weights or bias to cause a small change in the corresponding output. If we can achieve this, we can gradually update our weights and biases until our outputs are very accurate. Unfortunately, perceptrons don’t have this feature.</p>
+
+<p><img src="/assets/post01/perceptron-activation.png" alt="Perceptron Activation Function" height="200" />
+<em>Perceptron Activation Function (<a href="https://www.codeproject.com/Articles/1216170/Common-Neural-Network-Activation-Functions">Source</a>)</em></p>
+
+<p>Looking at the perceptron activation function, we can see that a small change in the weights or biases can have one of two effects:</p>
+<ol>
+  <li>The output won’t change at all</li>
+  <li>The output will change completely</li>
+</ol>
+
+<p>This is because the perceptron activation function is (1) not continuous and (2) has a derivative of zero when it is differentiable. We want activation functions that are both continuous and differentiable. In the next section, we will look at four different activation functions that we can use with neurons in our neural network.</p>
+
+<hr />
+
+<h2 id="activation-functions">Activation Functions</h2>
+<p>In this section we will look at four different activation functions, <script type="math/tex">g(\cdot)</script>:</p>
+<ol>
+  <li>The sigmoid function: <script type="math/tex">\sigma(z)</script></li>
+  <li>The hyperbolic tangent function: <script type="math/tex">\tanh(z)</script></li>
+  <li>The ReLU function: <script type="math/tex">\text{ReLU}(z)</script></li>
+  <li>The Leaky ReLU function: <script type="math/tex">\text{LeakyReLU}(z)</script></li>
+</ol>
+
+<h3 id="the-sigmoid-function">The Sigmoid Function</h3>
+<p><img src="/assets/post01/sigmoid-activation.png" alt="Sigmoid Activation Function" height="200" />
+<em>Sigmoid Activation Function (<a href="https://towardsdatascience.com/derivative-of-the-sigmoid-function-536880cf918e">Source</a>)</em></p>
+
+<p>The sigmoid function has the following formula</p>
+
+<script type="math/tex; mode=display">\sigma(z) = \frac{1}{1 + e^(-z)}</script>
+
+<p>The sigmoid function has the following derivate (<a href="http://kawahara.ca/how-to-compute-the-derivative-of-a-sigmoid-function-fully-worked-example/">derivation</a>)</p>
+
+<script type="math/tex; mode=display">\sigma'(z) = \sigma(z) (1 - \sigma(z))</script>
+
+<p>The sigmoid function is both continuous and differentiable as desired. Another useful property of the sigmoid function is that the output of the sigmoid function is always between 0 and 1, so we can interpret the output of the function as a probability.</p>
+
+<h3 id="the-hyperbolic-tangent-function">The Hyperbolic Tangent Function</h3>
+<p><img src="/assets/post01/tanh-activation.jpg" alt="Hyperbolic Tangent Activation Function" height="200" />
+<em>Hyperbolic Tangent Activation Function (<a href="http://www.20sim.com/webhelp/language_reference_functions_tanh.php">Source</a>)</em></p>
+
+<p>The hyperbolic tangent function has the following formula</p>
+
+<script type="math/tex; mode=display">\tanh(z) = \frac{e^z - e^{-z}}{e^z + e^{-z}}</script>
+
+<p>The hyperbolic tangent function has the following derivate</p>
+
+<script type="math/tex; mode=display">\tanh'(z) = 1 - (tanh^2(z))^2</script>
+
+<p>The hyperbolic tangent function is continuous and differentiable as desired. Another useful property of the hyperbolic tangent function is that the output is between -1 and 1 and centered around 0 (see graph above). The result is that the hyperbolic function has a way of “centering” our data about 0 which tends to cause our neural networks to learn faster.</p>
+
+<p>In course one of the <a href="https://www.coursera.org/specializations/deep-learning">Deep Learning Specialization</a> Professor Ng says that hyperbolic tangent is almost always better than the sigmoid function, except for possibly in the output layer where we may want to use the sigmoid function to represent a probability.</p>
+
+<h3 id="the-rectified-linear-unit-relu">The Rectified Linear Unit (ReLU)</h3>
+<p><img src="/assets/post01/relu-activation.png" alt="ReLU Activation Function" height="200" />
+<em>ReLU Activation Function (<a href="https://www.learnopencv.com/understanding-activation-functions-in-deep-learning/">Source</a>)</em></p>
+
+<p>The ReLU has a very simple formula</p>
+
+<script type="math/tex; mode=display">\text{ReLU}(z) = \max(0, z)</script>
+
+<p>The derivative of the ReLU is as follows</p>
+
+<script type="math/tex; mode=display">% <![CDATA[
+\text{ReLU}'(z) =
+\begin{cases}
+1, & \text{if $z > 0$} \\
+0, & \text{if $z < 0$} \\
+\text{DNE}, & \text{if z = 0, in practice use 0 or 1}
+\end{cases} %]]></script>
+
+<p>The ReLU function is continuous and differentiable everywhere except <script type="math/tex">z = 0</script>. In practice, this does not matter and you can set the derivative at <script type="math/tex">z = 0</script> to be either 1 or 0. The ReLU function is currently the most used activation function.</p>
+
+<p>If you look at the sigmoid and hyperbolic tangent functions, you will notice that for very large or very small values of <script type="math/tex">z</script> the derivative is nearly 0. This will slow down learning, so the ReLU is preferred. Of course, the derivative of the ReLU is 0 for all <script type="math/tex">% <![CDATA[
+z < 0 %]]></script> which leads to our final activation function.</p>
+
+<h3 id="the-leaky-relu">The Leaky ReLU</h3>
+<p><img src="/assets/post01/leaky-relu-activation.png" alt="Leaky ReLU Activation Function" height="200" />
+<em>Leaky ReLU Activation Function (<a href="https://www.learnopencv.com/understanding-activation-functions-in-deep-learning/">Source</a>)</em></p>
+
+<p>The Leaky ReLU also has a simple formula</p>
+
+<script type="math/tex; mode=display">\text{LeakyReLU}(z) = \max(0.01z, z)</script>
+
+<p>The derivative of the Leaky ReLU is as follows</p>
+
+<script type="math/tex; mode=display">% <![CDATA[
+\text{LeakyReLU}'(z) =
+\begin{cases}
+1, & \text{if $z > 0$} \\
+0.01, & \text{if $z < 0$} \\
+\text{DNE}, & \text{if z = 0, in practice use 0.01 or 1}
+\end{cases} %]]></script>
+
+<p>The Leaky ReLU function is extremely similar to the ReLU function, but has a non-zero derivative for <script type="math/tex">% <![CDATA[
+z < 0 %]]></script>. The Leaky ReLU actually works quite well in practice, but it is rarely used compared to the standard ReLU function.</p>
+
+<hr />
+
+<h2 id="from-neurons-to-neural-networks">From Neurons to Neural Networks</h2>
+<p>Now that we have established what neurons are, how they compute their output, and what activation functions they can use, we can start to discuss neural networks. In this section, we will look at some neural network terminology, and we will compute the output of a neural network by hand. In the next post, we will establish some more mathematical notation to simplify this process.</p>
+
+<p><img src="/assets/post01/nn-terminology-example.svg" alt="Neural Network Example" height="250" /></p>
+
+<h3 id="terminology">Terminology</h3>
+<p>Above is a diagram for a simple 2-layer neural network. It may look like there are three layers, but the layer all the way on the left is the “Input Layer” and we don’t count it. Thus the neural network shown above has 2-layers – one hidden layer and one output layer. Since our end-user only cares about the input and the output, we call all the layers in between “hidden layers”. An L-layer neural network will have L-1 hidden layers.</p>
+
+<p>The nodes in the input layer, labeled <script type="math/tex">x_1</script> and <script type="math/tex">x_2</script> are not neurons, they are just real valued inputs. The hidden layer, however, contains three neurons and the output layer contains a single neuron.</p>
+
+<p>Each neuron in the hidden layer takes two inputs, <script type="math/tex">x_1</script> and <script type="math/tex">x_2</script> and produces a single output. The neuron in the output layer takes three inputs, lets call them <script type="math/tex">h_1</script>, <script type="math/tex">h_2</script>, and <script type="math/tex">h_3</script>, and produces a single output <script type="math/tex">y</script>. Every edge in the neural network will have a weight associated with it, so this network has 9 weights in total.</p>
+
+<p>To see how a neural network computes its output, let’s give these variables some values and work through an example by hand. As mentioned, we will simplify the math and write some code to do this for us in the next post.</p>
+
+<h3 id="assigning-values-to-our-network">Assigning Values to our Network</h3>
+<p>Let’s suppose the inputs have the following values</p>
+
+<script type="math/tex; mode=display">x_1 = 1 \qquad x_2 = 2</script>
+
+<p>Then we can create a column vector containing our inputs</p>
+
+<script type="math/tex; mode=display">x =
+\begin{bmatrix}
+1 \\
+2 \\
+\end{bmatrix}</script>
+
+<p>Let’s give our hidden neurons some weights. Since each neuron takes two inputs, each neuron will need to have two weights. Suppose that <script type="math/tex">h_i</script> has weights <script type="math/tex">w_i</script> as follows</p>
+
+<script type="math/tex; mode=display">w_1 =
+\begin{bmatrix}
+0.25 \\
+-.25 \\
+\end{bmatrix}
+
+\qquad
+
+w_2 =
+\begin{bmatrix}
+-0.5 \\
+0.5 \\
+\end{bmatrix}
+
+\qquad
+
+w_3 =
+\begin{bmatrix}
+-1 \\
+1 \\
+\end{bmatrix}</script>
+
+<p>Our output neuron has three inputs, so it is going to need three weights. Let’s suppose that our output neuron <script type="math/tex">y</script> has the following weights</p>
+
+<script type="math/tex; mode=display">w_y =
+\begin{bmatrix}
+-1 \\
+0 \\
+1 \\
+\end{bmatrix}</script>
+
+<p>Finally, let’s assume that the bias of each neuron is 0, and let’s assume that the hidden neurons use ReLU activation and that the output neuron uses sigmoid activation.</p>
+
+<h3 id="computing-the-output">Computing the Output</h3>
+<p>With all of the values given above we have the following network</p>
+
+<p><img src="/assets/post01/nn-example-labeled.svg" alt="Labeled Neural Network Example" height="250" /></p>
+
+<p>In order to compute our final output, we first have to compute the output of each hidden neuron. We will essentially pass our input values “forward” through the network until we reach the output layer. The computations are below.</p>
+
+<p>For our first hidden neuron</p>
+
+<script type="math/tex; mode=display">% <![CDATA[
+\begin{align}
+z_{h1} & = w^T x + b \\
+  & = (0.25\cdot 1 + -0.25\cdot 2) + 0 \\
+  & = -0.25 \\
+a_{h1} & = \text{ReLU}(-0.25) \\
+       & = 0
+\end{align} %]]></script>
+
+<p>For our second hidden neuron</p>
+
+<script type="math/tex; mode=display">% <![CDATA[
+\begin{align}
+z_{h2} & = w^T x + b \\
+  & = (-0.5\cdot 1 + 0.5\cdot 2) + 0 \\
+  & = 0.5 \\
+a_{h1} & = \text{ReLU}(0.5) \\
+       & = 0.5
+\end{align} %]]></script>
+
+<p>For our third hidden neuron</p>
+
+<script type="math/tex; mode=display">% <![CDATA[
+\begin{align}
+z_{h2} & = w^T x + b \\
+  & = (-1\cdot 1 + 1\cdot 2) + 0 \\
+  & = 1.0 \\
+a_{h1} & = \text{ReLU}(1.0) \\
+       & = 1.0
+\end{align} %]]></script>
+
+<p>We can combine the hidden layer outputs into an input vector.</p>
+
+<script type="math/tex; mode=display">h =
+\begin{bmatrix}
+0 \\
+0.5 \\
+1.0 \\
+\end{bmatrix}</script>
+
+<p>Our output layer is a single neuron with sigmoid activation, so we get our final output</p>
+
+<script type="math/tex; mode=display">% <![CDATA[
+\begin{align}
+z_{y} & = w^T h + b \\
+  & = (-1\cdot 0 + 0\cdot 0.5 + 1\cdot 1) + 0 \\
+  & = 1.0 \\
+a_{y} & = \sigma(1.0) \\
+       & \approx 0.73
+\end{align} %]]></script>
+
+<p>You can check the sigmoid function computation <a href="https://www.wolframalpha.com/input/?i=sigmoid(1)">here</a>.</p>
+
+<hr />
+
+<h2 id="review">Review</h2>
+<p>Right now, it may not clear how a neural network learns or why they’re useful. For now, focus on the following takeaways.</p>
+
+<h3 id="what-is-a-neural-network-1">What is a neural network?</h3>
+<p>A neural network is a biologically-inspired programming paradigm that learns from examples without being explicitly programmed.</p>
+
+<h3 id="what-is-a-neural-network-made-of">What is a neural network made of?</h3>
+<p>A neural network is composed of many smaller units called neurons. Neurons weight their inputs, add a bias, and apply an activation function to create a single output. The output of one neuron can be fed into many other neurons allowing the neural network to learn complex mappings.</p>
+
+<h3 id="what-does-a-neural-network-do">What does a neural network do?</h3>
+<p>A neural network learns to map inputs to their desired outputs. For instance, given a photo output whether or not there is a cat in it. Another example could be, given some audio recording output a transcript in English.</p>
+
+<h3 id="how-does-a-neural-network-map-an-input-to-an-output">How does a neural network map an input to an output?</h3>
+<p>As we saw in the final example, a neural network passes its inputs through each layer of the network until they reach the output layer. The final output of a neural network will be determined by the weights, biases, and activations used within the network. In the next post, we will look at how we can efficiently map an input to its corresponding output.</p>
+
+
+</div>
+
+<div class="pagination">
+  
+  
+
+  <a href="#" class="top">Top</a>
+</div>
+
+    </main>
+
+    <footer>
+      <span>
+        &copy; <time datetime="2018-10-02 23:16:37 +0900">2018</time> Joseph Bergman.
+        Published on <time datetime="2018-10-02 00:00:00 +0900">October 02, 2018</time>.
+        
+      </span>
+    </footer>
+  </body>
+</html>
