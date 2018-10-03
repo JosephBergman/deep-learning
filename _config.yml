@@ -1,7 +1,7 @@
 # Site settings
 title:          Deep Learning
 description:    "Project based blog on deep learning"
-url:            "http://josephbergman.com"
+url:            "http://josephbergman.com/"
 relative_url:   "deep-learning"
 
 # Author

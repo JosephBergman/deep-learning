@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?><feed xmlns="http://www.w3.org/2005/Atom" ><generator uri="https://jekyllrb.com/" version="3.8.3">Jekyll</generator><link href="http://localhost:4000/feed.xml" rel="self" type="application/atom+xml" /><link href="http://localhost:4000/" rel="alternate" type="text/html" /><updated>2018-10-04T01:45:19+09:00</updated><id>http://localhost:4000/</id><title type="html">Deep Learning</title><subtitle>Project based blog on deep learning</subtitle><author><name>Joseph Bergman</name><email>Joseph.T.Bergman@gmail.com</email></author><entry><title type="html">Neural Network Basics</title><link href="http://localhost:4000/2018-10-02/neural-network-basics" rel="alternate" type="text/html" title="Neural Network Basics" /><published>2018-10-02T00:00:00+09:00</published><updated>2018-10-02T00:00:00+09:00</updated><id>http://localhost:4000/2018-10-02/neural-network-basics</id><content type="html" xml:base="http://localhost:4000/2018-10-02/neural-network-basics">&lt;p&gt;Throughout the next few posts we will answer the following three questions:&lt;/p&gt;
+<?xml version="1.0" encoding="utf-8"?><feed xmlns="http://www.w3.org/2005/Atom" ><generator uri="https://jekyllrb.com/" version="3.8.3">Jekyll</generator><link href="http://localhost:4000/feed.xml" rel="self" type="application/atom+xml" /><link href="http://localhost:4000/" rel="alternate" type="text/html" /><updated>2018-10-04T01:49:45+09:00</updated><id>http://localhost:4000/</id><title type="html">Deep Learning</title><subtitle>Project based blog on deep learning</subtitle><author><name>Joseph Bergman</name><email>Joseph.T.Bergman@gmail.com</email></author><entry><title type="html">Neural Network Basics</title><link href="http://localhost:4000/2018-10-02/neural-network-basics" rel="alternate" type="text/html" title="Neural Network Basics" /><published>2018-10-02T00:00:00+09:00</published><updated>2018-10-02T00:00:00+09:00</updated><id>http://localhost:4000/2018-10-02/neural-network-basics</id><content type="html" xml:base="http://localhost:4000/2018-10-02/neural-network-basics">&lt;p&gt;Throughout the next few posts we will answer the following three questions:&lt;/p&gt;
 
 &lt;ol&gt;
   &lt;li&gt;What is a neural network?&lt;/li&gt;
@@ -15,7 +15,7 @@
 
 &lt;p&gt;Similar to the human brain, a neural network is composed of many smaller and simpler units known as “(artificial) neurons”. Individually, each neuron performs a relatively simple computation, but by feeding the output of one neuron into other neurons we can compute progressively more complex functions. Neural networks currently provide the best solutions to a number of problems in image recognition, speech recognition, and natural language processing.&lt;/p&gt;
 
-&lt;p&gt;&lt;img src=&quot;/assets/post01/nn-example.svg&quot; alt=&quot;Example of a Neural Network&quot; width=&quot;200px&quot; /&gt;
+&lt;p&gt;&lt;img src=&quot;/deep-learning/assets/post01/nn-example.svg&quot; alt=&quot;Example of a Neural Network&quot; width=&quot;200px&quot; /&gt;
 &lt;em&gt;An example of a 5-layer neural network&lt;/em&gt;&lt;/p&gt;
 
 &lt;p&gt;More precisely, a neural network is a map from some input space to a range of output values. The input space and output space will vary depending on the problem. For instance, the input could be a photo of a handwritten digit and the output would be some digit between 0 and 9. In a more complex case, the input could be some photo and the output could be a caption for that photo. What makes neural networks so powerful is that they can learn the mapping between the input and output just by looking at examples.&lt;/p&gt;
@@ -42,7 +42,7 @@ g(z) =
 &lt;p&gt;The function &lt;script type=&quot;math/tex&quot;&gt;g(z)&lt;/script&gt; is an example of an “activation function”, and will be the only thing that changes in our other neurons.&lt;/p&gt;
 
 &lt;h3 id=&quot;example-of-a-perceptron&quot;&gt;Example of a Perceptron&lt;/h3&gt;
-&lt;p&gt;&lt;img src=&quot;/assets/post01/perceptron-example.png&quot; alt=&quot;Example of a Perceptron&quot; /&gt;
+&lt;p&gt;&lt;img src=&quot;/deep-learning/assets/post01/perceptron-example.png&quot; alt=&quot;Example of a Perceptron&quot; /&gt;
 &lt;em&gt;(&lt;a href=&quot;http://neuralnetworksanddeeplearning.com/chap1.html&quot;&gt;source&lt;/a&gt;)&lt;/em&gt;&lt;/p&gt;
 
 &lt;p&gt;The perceptron above takes two inputs &lt;script type=&quot;math/tex&quot;&gt;x_1&lt;/script&gt; and &lt;script type=&quot;math/tex&quot;&gt;x_2&lt;/script&gt; which have corresponding weights &lt;script type=&quot;math/tex&quot;&gt;w_1 = -2&lt;/script&gt; and &lt;script type=&quot;math/tex&quot;&gt;w_2 = -2&lt;/script&gt; as shown. The perceptron has a bias of &lt;script type=&quot;math/tex&quot;&gt;b = 3&lt;/script&gt;. The value of the output depends on the specific values of the inputs. For example, suppose &lt;script type=&quot;math/tex&quot;&gt;x_1 = 1&lt;/script&gt; and &lt;script type=&quot;math/tex&quot;&gt;x_2 = 0&lt;/script&gt;. Then&lt;/p&gt;
@@ -86,7 +86,7 @@ z &amp; = w^T x + b \\
 &lt;h3 id=&quot;problems-with-the-perceptron&quot;&gt;Problems with the Perceptron&lt;/h3&gt;
 &lt;p&gt;Ultimately we want to devise algorithms which allow our neural network to learn the weights &lt;script type=&quot;math/tex&quot;&gt;w&lt;/script&gt; and biases &lt;script type=&quot;math/tex&quot;&gt;b&lt;/script&gt; on its own. To be able to learn, we want a small change to the weights or bias to cause a small change in the corresponding output. If we can achieve this, we can gradually update our weights and biases until our outputs are very accurate. Unfortunately, perceptrons don’t have this feature.&lt;/p&gt;
 
-&lt;p&gt;&lt;img src=&quot;/assets/post01/perceptron-activation.png&quot; alt=&quot;Perceptron Activation Function&quot; height=&quot;200&quot; /&gt;
+&lt;p&gt;&lt;img src=&quot;/deep-learning/assets/post01/perceptron-activation.png&quot; alt=&quot;Perceptron Activation Function&quot; height=&quot;200&quot; /&gt;
 &lt;em&gt;Perceptron Activation Function (&lt;a href=&quot;https://www.codeproject.com/Articles/1216170/Common-Neural-Network-Activation-Functions&quot;&gt;Source&lt;/a&gt;)&lt;/em&gt;&lt;/p&gt;
 
 &lt;p&gt;Looking at the perceptron activation function, we can see that a small change in the weights or biases can have one of two effects:&lt;/p&gt;
@@ -109,7 +109,7 @@ z &amp; = w^T x + b \\
 &lt;/ol&gt;
 
 &lt;h3 id=&quot;the-sigmoid-function&quot;&gt;The Sigmoid Function&lt;/h3&gt;
-&lt;p&gt;&lt;img src=&quot;/assets/post01/sigmoid-activation.png&quot; alt=&quot;Sigmoid Activation Function&quot; height=&quot;200&quot; /&gt;
+&lt;p&gt;&lt;img src=&quot;/deep-learning/assets/post01/sigmoid-activation.png&quot; alt=&quot;Sigmoid Activation Function&quot; height=&quot;200&quot; /&gt;
 &lt;em&gt;Sigmoid Activation Function (&lt;a href=&quot;https://towardsdatascience.com/derivative-of-the-sigmoid-function-536880cf918e&quot;&gt;Source&lt;/a&gt;)&lt;/em&gt;&lt;/p&gt;
 
 &lt;p&gt;The sigmoid function has the following formula&lt;/p&gt;
@@ -123,7 +123,7 @@ z &amp; = w^T x + b \\
 &lt;p&gt;The sigmoid function is both continuous and differentiable as desired. Another useful property of the sigmoid function is that the output of the sigmoid function is always between 0 and 1, so we can interpret the output of the function as a probability.&lt;/p&gt;
 
 &lt;h3 id=&quot;the-hyperbolic-tangent-function&quot;&gt;The Hyperbolic Tangent Function&lt;/h3&gt;
-&lt;p&gt;&lt;img src=&quot;/assets/post01/tanh-activation.jpg&quot; alt=&quot;Hyperbolic Tangent Activation Function&quot; height=&quot;200&quot; /&gt;
+&lt;p&gt;&lt;img src=&quot;/deep-learning/assets/post01/tanh-activation.jpg&quot; alt=&quot;Hyperbolic Tangent Activation Function&quot; height=&quot;200&quot; /&gt;
 &lt;em&gt;Hyperbolic Tangent Activation Function (&lt;a href=&quot;http://www.20sim.com/webhelp/language_reference_functions_tanh.php&quot;&gt;Source&lt;/a&gt;)&lt;/em&gt;&lt;/p&gt;
 
 &lt;p&gt;The hyperbolic tangent function has the following formula&lt;/p&gt;
@@ -139,7 +139,7 @@ z &amp; = w^T x + b \\
 &lt;p&gt;In course one of the &lt;a href=&quot;https://www.coursera.org/specializations/deep-learning&quot;&gt;Deep Learning Specialization&lt;/a&gt; Professor Ng says that hyperbolic tangent is almost always better than the sigmoid function, except for possibly in the output layer where we may want to use the sigmoid function to represent a probability.&lt;/p&gt;
 
 &lt;h3 id=&quot;the-rectified-linear-unit-relu&quot;&gt;The Rectified Linear Unit (ReLU)&lt;/h3&gt;
-&lt;p&gt;&lt;img src=&quot;/assets/post01/relu-activation.png&quot; alt=&quot;ReLU Activation Function&quot; height=&quot;200&quot; /&gt;
+&lt;p&gt;&lt;img src=&quot;/deep-learning/assets/post01/relu-activation.png&quot; alt=&quot;ReLU Activation Function&quot; height=&quot;200&quot; /&gt;
 &lt;em&gt;ReLU Activation Function (&lt;a href=&quot;https://www.learnopencv.com/understanding-activation-functions-in-deep-learning/&quot;&gt;Source&lt;/a&gt;)&lt;/em&gt;&lt;/p&gt;
 
 &lt;p&gt;The ReLU has a very simple formula&lt;/p&gt;
@@ -162,7 +162,7 @@ z &amp; = w^T x + b \\
 z &lt; 0 %]]&gt;&lt;/script&gt; which leads to our final activation function.&lt;/p&gt;
 
 &lt;h3 id=&quot;the-leaky-relu&quot;&gt;The Leaky ReLU&lt;/h3&gt;
-&lt;p&gt;&lt;img src=&quot;/assets/post01/leaky-relu-activation.png&quot; alt=&quot;Leaky ReLU Activation Function&quot; height=&quot;200&quot; /&gt;
+&lt;p&gt;&lt;img src=&quot;/deep-learning/assets/post01/leaky-relu-activation.png&quot; alt=&quot;Leaky ReLU Activation Function&quot; height=&quot;200&quot; /&gt;
 &lt;em&gt;Leaky ReLU Activation Function (&lt;a href=&quot;https://www.learnopencv.com/understanding-activation-functions-in-deep-learning/&quot;&gt;Source&lt;/a&gt;)&lt;/em&gt;&lt;/p&gt;
 
 &lt;p&gt;The Leaky ReLU also has a simple formula&lt;/p&gt;
@@ -187,7 +187,7 @@ z &lt; 0 %]]&gt;&lt;/script&gt;. The Leaky ReLU actually works quite well in pra
 &lt;h2 id=&quot;from-neurons-to-neural-networks&quot;&gt;From Neurons to Neural Networks&lt;/h2&gt;
 &lt;p&gt;Now that we have established what neurons are, how they compute their output, and what activation functions they can use, we can start to discuss neural networks. In this section, we will look at some neural network terminology, and we will compute the output of a neural network by hand. In the next post, we will establish some more mathematical notation to simplify this process.&lt;/p&gt;
 
-&lt;p&gt;&lt;img src=&quot;/assets/post01/nn-terminology-example.svg&quot; alt=&quot;Neural Network Example&quot; height=&quot;250&quot; /&gt;&lt;/p&gt;
+&lt;p&gt;&lt;img src=&quot;/deep-learning/assets/post01/nn-terminology-example.svg&quot; alt=&quot;Neural Network Example&quot; height=&quot;250&quot; /&gt;&lt;/p&gt;
 
 &lt;h3 id=&quot;terminology&quot;&gt;Terminology&lt;/h3&gt;
 &lt;p&gt;Above is a diagram for a simple 2-layer neural network. It may look like there are three layers, but the layer all the way on the left is the “Input Layer” and we don’t count it. Thus the neural network shown above has 2-layers – one hidden layer and one output layer. Since our end-user only cares about the input and the output, we call all the layers in between “hidden layers”. An L-layer neural network will have L-1 hidden layers.&lt;/p&gt;
@@ -249,7 +249,7 @@ w_3 =
 &lt;h3 id=&quot;computing-the-output&quot;&gt;Computing the Output&lt;/h3&gt;
 &lt;p&gt;With all of the values given above we have the following network&lt;/p&gt;
 
-&lt;p&gt;&lt;img src=&quot;/assets/post01/nn-example-labeled.svg&quot; alt=&quot;Labeled Neural Network Example&quot; height=&quot;250&quot; /&gt;&lt;/p&gt;
+&lt;p&gt;&lt;img src=&quot;/deep-learning/assets/post01/nn-example-labeled.svg&quot; alt=&quot;Labeled Neural Network Example&quot; height=&quot;250&quot; /&gt;&lt;/p&gt;
 
 &lt;p&gt;In order to compute our final output, we first have to compute the output of each hidden neuron. We will essentially pass our input values “forward” through the network until we reach the output layer. The computations are below.&lt;/p&gt;
 
