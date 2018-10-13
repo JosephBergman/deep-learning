@@ -1,4 +1,523 @@
-<?xml version="1.0" encoding="utf-8"?><feed xmlns="http://www.w3.org/2005/Atom" ><generator uri="https://jekyllrb.com/" version="3.8.3">Jekyll</generator><link href="http://localhost:4000/feed.xml" rel="self" type="application/atom+xml" /><link href="http://localhost:4000/" rel="alternate" type="text/html" /><updated>2018-10-04T01:49:45+09:00</updated><id>http://localhost:4000/</id><title type="html">Deep Learning</title><subtitle>Project based blog on deep learning</subtitle><author><name>Joseph Bergman</name><email>Joseph.T.Bergman@gmail.com</email></author><entry><title type="html">Neural Network Basics</title><link href="http://localhost:4000/2018-10-02/neural-network-basics" rel="alternate" type="text/html" title="Neural Network Basics" /><published>2018-10-02T00:00:00+09:00</published><updated>2018-10-02T00:00:00+09:00</updated><id>http://localhost:4000/2018-10-02/neural-network-basics</id><content type="html" xml:base="http://localhost:4000/2018-10-02/neural-network-basics">&lt;p&gt;Throughout the next few posts we will answer the following three questions:&lt;/p&gt;
+<?xml version="1.0" encoding="utf-8"?><feed xmlns="http://www.w3.org/2005/Atom" ><generator uri="https://jekyllrb.com/" version="3.8.3">Jekyll</generator><link href="http://localhost:4000/feed.xml" rel="self" type="application/atom+xml" /><link href="http://localhost:4000/" rel="alternate" type="text/html" /><updated>2018-10-14T04:04:11+09:00</updated><id>http://localhost:4000/</id><title type="html">Deep Learning</title><subtitle>Project based blog on deep learning</subtitle><author><name>Joseph Bergman</name><email>Joseph.T.Bergman@gmail.com</email></author><entry><title type="html">Forward Propagation</title><link href="http://localhost:4000/2018-10-14/forward-propagation" rel="alternate" type="text/html" title="Forward Propagation" /><published>2018-10-14T00:00:00+09:00</published><updated>2018-10-14T00:00:00+09:00</updated><id>http://localhost:4000/2018-10-14/forward-propagation</id><content type="html" xml:base="http://localhost:4000/2018-10-14/forward-propagation">&lt;p&gt;In the previous post, we looked at what neural networks are and how they compute their output. In this post, we will devise a more concise notation for computing a neural network’s output, and we will start to write some code for a neural network in Python. This post will require some familiarity with both &lt;a href=&quot;http://www.diveintopython3.net/&quot;&gt;Python&lt;/a&gt; and &lt;a href=&quot;https://www.khanacademy.org/math/linear-algebra&quot;&gt;Linear Algebra&lt;/a&gt;.&lt;/p&gt;
+
+&lt;hr /&gt;
+
+&lt;h2 id=&quot;after-reading-this-post&quot;&gt;After Reading This Post&lt;/h2&gt;
+
+&lt;p&gt;&lt;img src=&quot;/assets/post02/nn-1.svg&quot; alt=&quot;A 3-Layer Neural Network&quot; width=&quot;300&quot; /&gt;
+&lt;em&gt;Figure 1&lt;/em&gt;&lt;/p&gt;
+
+&lt;p&gt;After reading this post you should be able to answer the following questions:&lt;/p&gt;
+&lt;ol&gt;
+  &lt;li&gt;What are the dimensions of &lt;script type=&quot;math/tex&quot;&gt;W^{[1]}&lt;/script&gt;, &lt;script type=&quot;math/tex&quot;&gt;W^{[2]}&lt;/script&gt;, and &lt;script type=&quot;math/tex&quot;&gt;W^{[3]}&lt;/script&gt; for this network?&lt;/li&gt;
+  &lt;li&gt;What are the dimensions of &lt;script type=&quot;math/tex&quot;&gt;b^{[1]}&lt;/script&gt;, &lt;script type=&quot;math/tex&quot;&gt;b^{[2]}&lt;/script&gt;, and &lt;script type=&quot;math/tex&quot;&gt;b^{[3]}&lt;/script&gt; for this network?&lt;/li&gt;
+  &lt;li&gt;How are &lt;script type=&quot;math/tex&quot;&gt;z^{[i]}&lt;/script&gt; and &lt;script type=&quot;math/tex&quot;&gt;a^{[i]}&lt;/script&gt; different?&lt;/li&gt;
+  &lt;li&gt;How are &lt;script type=&quot;math/tex&quot;&gt;z^{[i]}&lt;/script&gt; and &lt;script type=&quot;math/tex&quot;&gt;a^{[i]}&lt;/script&gt; different from &lt;script type=&quot;math/tex&quot;&gt;Z^{[i]}&lt;/script&gt; and &lt;script type=&quot;math/tex&quot;&gt;A^{[i]}&lt;/script&gt;?&lt;/li&gt;
+&lt;/ol&gt;
+
+&lt;p&gt;The answers are provided at the end!&lt;/p&gt;
+
+&lt;hr /&gt;
+
+&lt;h2 id=&quot;the-weight-matrix-wi&quot;&gt;The Weight Matrix &lt;script type=&quot;math/tex&quot;&gt;W^{[i]}&lt;/script&gt;&lt;/h2&gt;
+&lt;p&gt;In the previous post, when we computed the output of our neural network, we took the inputs and fed them into each neuron individually. We were able to represent our inputs and weights as vectors, so we could simplify the computation for each neuron to the following dot product.&lt;/p&gt;
+
+&lt;script type=&quot;math/tex; mode=display&quot;&gt;z = w^T x \quad \text{($+b$, which we are ignoring for now)}&lt;/script&gt;
+
+&lt;p&gt;Doing this for every neuron individually is rather tedious. The value of &lt;script type=&quot;math/tex&quot;&gt;x&lt;/script&gt; never changes – we just multiply it by different weights repeatedly. It turns out we can compute this dot product for every neuron in a layer at once by putting the weight vectors into a matrix &lt;script type=&quot;math/tex&quot;&gt;W&lt;/script&gt;. Then, all we have to do is compute the following&lt;/p&gt;
+
+&lt;script type=&quot;math/tex; mode=display&quot;&gt;z = W x&lt;/script&gt;
+
+&lt;h3 id=&quot;a-practice-example&quot;&gt;A Practice Example&lt;/h3&gt;
+&lt;p&gt;&lt;img src=&quot;/assets/post02/nn-example.svg&quot; alt=&quot;Our example network&quot; height=&quot;175&quot; /&gt;&lt;/p&gt;
+
+&lt;p&gt;Previously, we were computing three separate dot products for the first layer.&lt;/p&gt;
+
+&lt;script type=&quot;math/tex; mode=display&quot;&gt;% &lt;![CDATA[
+\begin{align}
+z_{h1} &amp; = w^T x \\
+&amp; = 0.25\cdot x_1 + -0.25\cdot x_2
+\end{align} %]]&gt;&lt;/script&gt;
+
+&lt;script type=&quot;math/tex; mode=display&quot;&gt;% &lt;![CDATA[
+\begin{align}
+z_{h2} &amp; = w^T x \\
+  &amp; = -0.5\cdot x_1 + 0.5\cdot x_2
+\end{align} %]]&gt;&lt;/script&gt;
+
+&lt;script type=&quot;math/tex; mode=display&quot;&gt;% &lt;![CDATA[
+\begin{align}
+z_{h2} &amp; = w^T x \\
+  &amp; = -1\cdot x_1 + 1\cdot x_2
+\end{align} %]]&gt;&lt;/script&gt;
+
+&lt;p&gt;Instead, we can just perform a single matrix-vector multiplication&lt;/p&gt;
+
+&lt;script type=&quot;math/tex; mode=display&quot;&gt;% &lt;![CDATA[
+\begin{align}
+z &amp;= W x \\
+&amp; =
+\begin{bmatrix}
+0.25 &amp; -0.25 \\
+-0.5 &amp; 0.5 \\
+-1.0 &amp; 1.0 \\
+\end{bmatrix}
+
+\begin{bmatrix}
+x_1 \\
+x_2 \\
+\end{bmatrix}
+
+\end{align} %]]&gt;&lt;/script&gt;
+
+&lt;p&gt;Now, instead of being a single value, &lt;script type=&quot;math/tex&quot;&gt;z&lt;/script&gt; will also be a vector.&lt;/p&gt;
+
+&lt;script type=&quot;math/tex; mode=display&quot;&gt;z =  
+\begin{bmatrix}
+-0.25 \\
+0.5 \\
+1.0 \\
+\end{bmatrix}&lt;/script&gt;
+
+&lt;p&gt;We will have a weight matrix for each layer of our neural network, so we will label them with a bracketed superscript. Therefore, the example shown above can be written concisely as&lt;/p&gt;
+
+&lt;script type=&quot;math/tex; mode=display&quot;&gt;z = W^{[1]} x&lt;/script&gt;
+
+&lt;p&gt;In practice, we will give all of our weight matrices random weights. Therefore, the only thing you need to remember about the weight-matrix is its dimensions – you don’t have to worry about what weight goes where. Below is a summary of what you need to remember.&lt;/p&gt;
+
+&lt;h3 id=&quot;weight-matrix-dimensions&quot;&gt;Weight Matrix Dimensions&lt;/h3&gt;
+&lt;p&gt;The weight matrix &lt;script type=&quot;math/tex&quot;&gt;W^{[l]}&lt;/script&gt; has dimensions &lt;script type=&quot;math/tex&quot;&gt;n^{[l]} \times n^{[l-1]}&lt;/script&gt; where &lt;script type=&quot;math/tex&quot;&gt;n^{[l]}&lt;/script&gt; is the number of units in layer &lt;script type=&quot;math/tex&quot;&gt;l&lt;/script&gt;. This is easy to remember for two reasons: (1) It has to have &lt;script type=&quot;math/tex&quot;&gt;n_l&lt;/script&gt; rows so that there is one output per neuron, and (2) It has to have &lt;script type=&quot;math/tex&quot;&gt;n_{l-1}&lt;/script&gt; columns or we couldn’t multiply it by its input – the dimensions would not match!&lt;/p&gt;
+
+&lt;hr /&gt;
+
+&lt;h2 id=&quot;the-bias-vector-bi&quot;&gt;The Bias Vector &lt;script type=&quot;math/tex&quot;&gt;b^{[i]}&lt;/script&gt;&lt;/h2&gt;
+&lt;p&gt;As you may recall, each neuron also has a bias associated with it, which is just some scalar value. In order to “linear algebra-ify” our neural network computations, we will put all the biases into a vector. So originally we computed the following for each neuron&lt;/p&gt;
+
+&lt;script type=&quot;math/tex; mode=display&quot;&gt;z = w^T x + b&lt;/script&gt;
+
+&lt;p&gt;And now we will compute the following&lt;/p&gt;
+
+&lt;script type=&quot;math/tex; mode=display&quot;&gt;z = W^{[l]}x + b^{[l]}&lt;/script&gt;
+
+&lt;p&gt;This isn’t too different from what we did before. The only difference is that &lt;script type=&quot;math/tex&quot;&gt;b^{[l]}&lt;/script&gt; is an &lt;script type=&quot;math/tex&quot;&gt;n^{[l]} \times 1&lt;/script&gt; column vector containing the biases for each neuron in layer &lt;script type=&quot;math/tex&quot;&gt;l&lt;/script&gt;.&lt;/p&gt;
+
+&lt;h3 id=&quot;a-practice-example-1&quot;&gt;A Practice Example&lt;/h3&gt;
+&lt;p&gt;&lt;img src=&quot;/assets/post02/nn-example-bias.svg&quot; alt=&quot;Our example network with biases&quot; height=&quot;175&quot; /&gt;
+&lt;em&gt;Example with Biases&lt;/em&gt;&lt;/p&gt;
+
+&lt;p&gt;Here is a quick example with biases added. The dimensions of &lt;script type=&quot;math/tex&quot;&gt;Wx&lt;/script&gt; and &lt;script type=&quot;math/tex&quot;&gt;b&lt;/script&gt; have to match.&lt;/p&gt;
+
+&lt;script type=&quot;math/tex; mode=display&quot;&gt;% &lt;![CDATA[
+\begin{align}
+z &amp;= W^{[1]} x + b^{[1]} \\
+
+&amp;=
+\begin{bmatrix}
+0.25 &amp; -0.25 \\
+-0.5 &amp; 0.5 \\
+-1.0 &amp; 1.0 \\
+\end{bmatrix}
+
+\begin{bmatrix}
+x_1 \\
+x_2 \\
+\end{bmatrix}
+
++
+\begin{bmatrix}
+1 \\
+2 \\
+3 \\
+\end{bmatrix} \\
+
+&amp;=
+\begin{bmatrix}
+-0.25 \\
+0.5 \\
+1.0 \\
+\end{bmatrix}
+
++
+\begin{bmatrix}
+1 \\
+2 \\
+3 \\
+\end{bmatrix} \\
+
+&amp;=
+\begin{bmatrix}
+0.75 \\
+2.5 \\
+4.0 \\
+\end{bmatrix}
+
+\end{align} %]]&gt;&lt;/script&gt;
+
+&lt;hr /&gt;
+
+&lt;h2 id=&quot;the-layer-outputs-zi-and-ai&quot;&gt;The Layer Outputs &lt;script type=&quot;math/tex&quot;&gt;z^{[i]}&lt;/script&gt; and &lt;script type=&quot;math/tex&quot;&gt;a^{[i]}&lt;/script&gt;&lt;/h2&gt;
+&lt;p&gt;So far, we have been looking at computing the outputs of just the first layer. Furthermore, we have only been looking at how to calculate &lt;script type=&quot;math/tex&quot;&gt;z&lt;/script&gt;. We have to apply some activation function (ReLU, Sigmoid, etc.) to the output of every neuron to get the activation of the layer, &lt;script type=&quot;math/tex&quot;&gt;a&lt;/script&gt;.&lt;/p&gt;
+
+&lt;p&gt;In the first layer, we will begin by computing the following&lt;/p&gt;
+
+&lt;script type=&quot;math/tex; mode=display&quot;&gt;z^{[1]} = W^{[1]} x + b^{[1]}&lt;/script&gt;
+
+&lt;p&gt;Then, we apply some activation function &lt;script type=&quot;math/tex&quot;&gt;g(\cdot)&lt;/script&gt; to get&lt;/p&gt;
+
+&lt;script type=&quot;math/tex; mode=display&quot;&gt;a^{[1]} = g(z)&lt;/script&gt;
+
+&lt;p&gt;This activation vectors, &lt;script type=&quot;math/tex&quot;&gt;a^{[1]}&lt;/script&gt;, will then be the input to the next layer, giving us the following formula for the remaining layers in our network.&lt;/p&gt;
+
+&lt;script type=&quot;math/tex; mode=display&quot;&gt;z^{[l]} = W^{[l]} a^{[l-1]} + b^{[l]} \qquad \text{for all $l &gt; 2$}&lt;/script&gt;
+
+&lt;p&gt;To simplify this formula, we are going to refer to the input &lt;script type=&quot;math/tex&quot;&gt;x&lt;/script&gt; as &lt;script type=&quot;math/tex&quot;&gt;a^{[0]}&lt;/script&gt; from now on. This gives us just two formulas to remember when computing the output of our neural network.&lt;/p&gt;
+
+&lt;script type=&quot;math/tex; mode=display&quot;&gt;% &lt;![CDATA[
+\begin{align}
+z^{[l]} &amp; = W^{[l]} a^{[l-1]} + b^{[l]} \\
+a^{[l]} &amp; = g(z)
+\end{align} %]]&gt;&lt;/script&gt;
+
+&lt;h3 id=&quot;a-practice-example-2&quot;&gt;A Practice Example&lt;/h3&gt;
+&lt;p&gt;&lt;img src=&quot;/assets/post02/nn-example-bias.svg&quot; alt=&quot;Our example network with biases&quot; height=&quot;175&quot; /&gt;
+&lt;em&gt;A Full Example&lt;/em&gt;&lt;/p&gt;
+
+&lt;p&gt;Using our new notation, let’s compute the output of this network.&lt;/p&gt;
+
+&lt;p&gt;First we compute the output of layer one.&lt;/p&gt;
+
+&lt;script type=&quot;math/tex; mode=display&quot;&gt;% &lt;![CDATA[
+\begin{align}
+z^{[1]} &amp; = W^{[1]} a^{[0]} + b^{[1]} \\
+
+&amp; =
+\begin{bmatrix}
+0.25 &amp; -0.25 \\
+-0.5 &amp; 0.5 \\
+-1.0 &amp; 1.0 \\
+\end{bmatrix}
+
+\begin{bmatrix}
+1 \\
+2 \\
+\end{bmatrix}
+
++
+\begin{bmatrix}
+1 \\
+2 \\
+3 \\
+\end{bmatrix} \\
+
+&amp; =
+
+\begin{bmatrix}
+-0.25 \\
+0.5 \\
+1.0 \\
+\end{bmatrix}
+
++
+\begin{bmatrix}
+1 \\
+2 \\
+3 \\
+\end{bmatrix} \\
+
+&amp;=
+\begin{bmatrix}
+0.75 \\
+2.5 \\
+4.0 \\
+\end{bmatrix} \\
+
+a^{[1]} &amp;= ReLU(z^{[1]}) \\
+
+&amp;=
+\begin{bmatrix}
+0.75 \\
+2.5 \\
+4.0 \\
+\end{bmatrix}
+\end{align} %]]&gt;&lt;/script&gt;
+
+&lt;p&gt;Next, we compute the output of the output layer.&lt;/p&gt;
+
+&lt;script type=&quot;math/tex; mode=display&quot;&gt;% &lt;![CDATA[
+\begin{align}
+z^{[2]} &amp; = W^{[2]} a^{[1]} + b^{[2]} \\
+
+&amp; =
+\begin{bmatrix}
+-1 &amp; 0 &amp; 1 \\
+\end{bmatrix}
+
+\begin{bmatrix}
+0.75 \\
+2.5 \\
+4.0 \\
+\end{bmatrix}
+
++
+\begin{bmatrix}
+-2 \\
+\end{bmatrix} \\
+
+&amp; =
+\begin{bmatrix}
+1.25 \\
+\end{bmatrix} \\
+
+a^{[2]} &amp;= \sigma(z^{[2]}) \\
+
+&amp;=
+\sigma([1.25]) \\
+
+&amp; \approx
+0.7772999
+\end{align} %]]&gt;&lt;/script&gt;
+
+&lt;p&gt;So the output of our network for the given weights, biases, and inputs is approximately &lt;script type=&quot;math/tex&quot;&gt;0.7772999&lt;/script&gt;.&lt;/p&gt;
+
+&lt;hr /&gt;
+
+&lt;h2 id=&quot;working-with-multiple-examples&quot;&gt;Working with Multiple Examples&lt;/h2&gt;
+&lt;p&gt;This is the last thing we need to discuss before we can begin implementing our neural network. In the previous example, our neural network was given just one set of inputs and was asked to give the corresponding output. In practice, however, we will want to show our neural network thousands (sometimes millions) of examples for it to learn from. Unlike humans, neural networks need to see lots of examples to learn. Therefore, we need an efficient way to feed thousands of examples into our network.&lt;/p&gt;
+
+&lt;h3 id=&quot;the-importance-of-vectorization&quot;&gt;The Importance of Vectorization&lt;/h3&gt;
+&lt;p&gt;If you have a programming background, you might be thinking, “Let’s  use a for-loop and feed all of the examples through one at a time.” This would work, but it would be very slow. When working with neural networks, we want to avoid for-loops as much as possible and write vectorized code. We usually avoid for-loops by using built-in functions from the &lt;code class=&quot;highlighter-rouge&quot;&gt;numpy&lt;/code&gt; library. As an example of how much faster vectorized code is, here is an example which computes the dot product of two vectors.&lt;/p&gt;
+
+&lt;figure class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-python&quot; data-lang=&quot;python&quot;&gt;&lt;span class=&quot;kn&quot;&gt;import&lt;/span&gt; &lt;span class=&quot;nn&quot;&gt;numpy&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;as&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;np&lt;/span&gt;
+&lt;span class=&quot;kn&quot;&gt;import&lt;/span&gt; &lt;span class=&quot;nn&quot;&gt;time&lt;/span&gt;
+
+&lt;span class=&quot;c&quot;&gt;# Generate two random vectors&lt;/span&gt;
+&lt;span class=&quot;n&quot;&gt;n&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;mi&quot;&gt;10000000&lt;/span&gt;
+&lt;span class=&quot;n&quot;&gt;x&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;np&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;random&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;randn&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;n&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+&lt;span class=&quot;n&quot;&gt;y&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;np&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;random&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;randn&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;n&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+
+&lt;span class=&quot;c&quot;&gt;# Compute their dot-product with a for-loop&lt;/span&gt;
+&lt;span class=&quot;n&quot;&gt;tic&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;time&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;time&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;()&lt;/span&gt;
+&lt;span class=&quot;n&quot;&gt;z1&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;mi&quot;&gt;0&lt;/span&gt;
+&lt;span class=&quot;k&quot;&gt;for&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;i&lt;/span&gt; &lt;span class=&quot;ow&quot;&gt;in&lt;/span&gt; &lt;span class=&quot;nb&quot;&gt;range&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;n&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;):&lt;/span&gt;
+    &lt;span class=&quot;n&quot;&gt;z1&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;+=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;x&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;[&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;i&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;]&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;*&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;y&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;[&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;i&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;]&lt;/span&gt;
+&lt;span class=&quot;n&quot;&gt;toc&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;time&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;time&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;()&lt;/span&gt;
+&lt;span class=&quot;n&quot;&gt;time1&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;toc&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;-&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;tic&lt;/span&gt;
+&lt;span class=&quot;k&quot;&gt;print&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;For Loop&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+&lt;span class=&quot;k&quot;&gt;print&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;--------&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+&lt;span class=&quot;k&quot;&gt;print&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;Out: &quot;&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;+&lt;/span&gt; &lt;span class=&quot;nb&quot;&gt;str&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;z1&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;))&lt;/span&gt;
+&lt;span class=&quot;k&quot;&gt;print&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;nb&quot;&gt;str&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;time1&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;*&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;1000&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;+&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;&quot;ms&lt;/span&gt;&lt;span class=&quot;se&quot;&gt;\n\n&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+
+&lt;span class=&quot;c&quot;&gt;# Compute their dot-product with numpy&lt;/span&gt;
+&lt;span class=&quot;n&quot;&gt;tic&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;time&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;time&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;()&lt;/span&gt;
+&lt;span class=&quot;n&quot;&gt;z2&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;np&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;dot&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;x&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;y&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+&lt;span class=&quot;n&quot;&gt;toc&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;time&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;time&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;()&lt;/span&gt;
+&lt;span class=&quot;n&quot;&gt;time2&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;toc&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;-&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;tic&lt;/span&gt;
+&lt;span class=&quot;k&quot;&gt;print&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;Vectorized&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+&lt;span class=&quot;k&quot;&gt;print&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;----------&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+&lt;span class=&quot;k&quot;&gt;print&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;Out: &quot;&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;+&lt;/span&gt; &lt;span class=&quot;nb&quot;&gt;str&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;z2&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;))&lt;/span&gt;
+&lt;span class=&quot;k&quot;&gt;print&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;nb&quot;&gt;str&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;time2&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;*&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;1000&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;+&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;&quot;ms&lt;/span&gt;&lt;span class=&quot;se&quot;&gt;\n\n&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+
+&lt;span class=&quot;c&quot;&gt;# How different are the results?&lt;/span&gt;
+&lt;span class=&quot;k&quot;&gt;print&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;Difference&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+&lt;span class=&quot;k&quot;&gt;print&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;----------&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+&lt;span class=&quot;k&quot;&gt;print&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;For Loop is &quot;&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;+&lt;/span&gt; &lt;span class=&quot;nb&quot;&gt;str&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;time1&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;/&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;time2&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;+&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;&quot; times slower.&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/figure&gt;
+
+&lt;p&gt;And here is the output of that program&lt;/p&gt;
+
+&lt;figure class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-python&quot; data-lang=&quot;python&quot;&gt;&lt;span class=&quot;n&quot;&gt;For&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;Loop&lt;/span&gt;
+&lt;span class=&quot;o&quot;&gt;--------&lt;/span&gt;
+&lt;span class=&quot;n&quot;&gt;Out&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;-&lt;/span&gt;&lt;span class=&quot;mf&quot;&gt;569.032297628&lt;/span&gt;
+&lt;span class=&quot;mf&quot;&gt;4745.116949081421&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;ms&lt;/span&gt;
+
+&lt;span class=&quot;n&quot;&gt;Vectorized&lt;/span&gt;
+&lt;span class=&quot;o&quot;&gt;----------&lt;/span&gt;
+&lt;span class=&quot;n&quot;&gt;Out&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;-&lt;/span&gt;&lt;span class=&quot;mf&quot;&gt;569.032297628&lt;/span&gt;
+&lt;span class=&quot;mf&quot;&gt;39.34192657470703&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;ms&lt;/span&gt;
+
+&lt;span class=&quot;n&quot;&gt;Difference&lt;/span&gt;
+&lt;span class=&quot;o&quot;&gt;----------&lt;/span&gt;
+&lt;span class=&quot;n&quot;&gt;For&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;Loop&lt;/span&gt; &lt;span class=&quot;ow&quot;&gt;is&lt;/span&gt; &lt;span class=&quot;mf&quot;&gt;120.6122160812547&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;times&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;slower&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/figure&gt;
+
+&lt;p&gt;To put that in perspective, 120 times slower could be the difference between a neural network that takes one minute to train and a neural network that takes two hours to train. To really put that in perspective, could you imagine paying to train a model in the cloud for two hours when you could have trained it in just one minute? For more explanation on &lt;em&gt;why&lt;/em&gt; vectorized code is faster, check out &lt;a href=&quot;https://stackoverflow.com/questions/35091979/why-is-vectorization-faster-in-general-than-loops&quot;&gt;this StackOverflow post&lt;/a&gt;.&lt;/p&gt;
+
+&lt;h3 id=&quot;feeding-in-multiple-examples&quot;&gt;Feeding in Multiple Examples&lt;/h3&gt;
+&lt;p&gt;Rather than using a for-loop to feed in multiple examples, we are going to make one final modification to our formulas. Currently, we are using the following equations for computing the output of a network. In these formulas, everything is a column vector except for the weight matrix.&lt;/p&gt;
+
+&lt;script type=&quot;math/tex; mode=display&quot;&gt;% &lt;![CDATA[
+\begin{align}
+z^{[l]} &amp; = W^{[l]} a^{[l-1]} + b^{[l]} \\
+a^{[l]} &amp; = g(z)
+\end{align} %]]&gt;&lt;/script&gt;
+
+&lt;p&gt;Now, we are going to replace our input vector &lt;script type=&quot;math/tex&quot;&gt;a^{[0]}&lt;/script&gt; with an input matrix &lt;script type=&quot;math/tex&quot;&gt;A^{[0]}&lt;/script&gt;. The matrix &lt;script type=&quot;math/tex&quot;&gt;A^{[0]}&lt;/script&gt; will have dimensions &lt;script type=&quot;math/tex&quot;&gt;n_0 \times m&lt;/script&gt; – in other words, we will take all of our examples, and put them in a single matrix arranged by columns. As a result, the dimensions of our other variables will change.&lt;/p&gt;
+&lt;ul&gt;
+  &lt;li&gt;&lt;script type=&quot;math/tex&quot;&gt;W^{[l]}&lt;/script&gt; is still an &lt;script type=&quot;math/tex&quot;&gt;(n^{[l]} \times n^{[l-1]})&lt;/script&gt; matrix.&lt;/li&gt;
+  &lt;li&gt;&lt;script type=&quot;math/tex&quot;&gt;A^{[l-1]}&lt;/script&gt; is an &lt;script type=&quot;math/tex&quot;&gt;(n^{[l-1]} \times m)&lt;/script&gt; matrix.&lt;/li&gt;
+  &lt;li&gt;&lt;script type=&quot;math/tex&quot;&gt;Z^{[l]}&lt;/script&gt; therefore, is an &lt;script type=&quot;math/tex&quot;&gt;(n^{[l]} \times m)&lt;/script&gt; matrix.&lt;/li&gt;
+  &lt;li&gt;&lt;script type=&quot;math/tex&quot;&gt;A^{[l]}&lt;/script&gt; will then be an &lt;script type=&quot;math/tex&quot;&gt;(n^{[l]} \times m)&lt;/script&gt; matrix as well.&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;However, &lt;script type=&quot;math/tex&quot;&gt;b^{[l]}&lt;/script&gt; actually does not change. It is still a column vector with dimensions &lt;script type=&quot;math/tex&quot;&gt;(n^{[l]} \times 1)&lt;/script&gt;. Adding &lt;script type=&quot;math/tex&quot;&gt;b^{[l]}&lt;/script&gt;, an &lt;script type=&quot;math/tex&quot;&gt;(n^{[l]} \times 1)&lt;/script&gt; vector, to &lt;script type=&quot;math/tex&quot;&gt;W^{[l]} A^{[l-1]}&lt;/script&gt;, an &lt;script type=&quot;math/tex&quot;&gt;(n^{[l]} \times m)&lt;/script&gt; matrix, is technically not defined. What we’re actually going to do is add the vector to each column of the matrix. We could duplicate the bias vector &lt;script type=&quot;math/tex&quot;&gt;m&lt;/script&gt; times to create a matrix with the correct dimensions, but this is unnecessary. Since the number of rows in &lt;script type=&quot;math/tex&quot;&gt;b&lt;/script&gt; matches the number of rows in &lt;script type=&quot;math/tex&quot;&gt;W^{[l]} A^{[l-1]}&lt;/script&gt; Python will use &lt;a href=&quot;http://cs231n.github.io/python-numpy-tutorial/#numpy-broadcasting&quot;&gt;broadcasting&lt;/a&gt; to automatically add the vector to each column.&lt;/p&gt;
+
+&lt;h3 id=&quot;our-final-formulas&quot;&gt;Our Final Formulas&lt;/h3&gt;
+&lt;p&gt;Based on the previous changes, we now have the following formulas.&lt;/p&gt;
+
+&lt;script type=&quot;math/tex; mode=display&quot;&gt;% &lt;![CDATA[
+\begin{align}
+Z^{[l]} &amp; = W^{[l]} A^{[l-1]} + b^{[l]} \\
+A^{[l]} &amp; = g(Z^{[l]})
+\end{align} %]]&gt;&lt;/script&gt;
+
+&lt;p&gt;The dimensions are as follows&lt;/p&gt;
+&lt;ul&gt;
+  &lt;li&gt;&lt;script type=&quot;math/tex&quot;&gt;W^{[l]}&lt;/script&gt; is an &lt;script type=&quot;math/tex&quot;&gt;(n^{[l]} \times n^{[l-1]})&lt;/script&gt; matrix.&lt;/li&gt;
+  &lt;li&gt;&lt;script type=&quot;math/tex&quot;&gt;A^{[l-1]}&lt;/script&gt; is an &lt;script type=&quot;math/tex&quot;&gt;(n^{[l-1]} \times m)&lt;/script&gt; matrix.&lt;/li&gt;
+  &lt;li&gt;&lt;script type=&quot;math/tex&quot;&gt;Z^{[l]}&lt;/script&gt; is an &lt;script type=&quot;math/tex&quot;&gt;(n^{[l]} \times m)&lt;/script&gt; matrix.&lt;/li&gt;
+  &lt;li&gt;&lt;script type=&quot;math/tex&quot;&gt;A^{[l]}&lt;/script&gt; is an &lt;script type=&quot;math/tex&quot;&gt;(n^{[l]} \times m)&lt;/script&gt; matrix.&lt;/li&gt;
+  &lt;li&gt;&lt;script type=&quot;math/tex&quot;&gt;b^{[l]}&lt;/script&gt; is an &lt;script type=&quot;math/tex&quot;&gt;(n^{[l]} \times 1)&lt;/script&gt; column vector&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;hr /&gt;
+
+&lt;h2 id=&quot;implementing-forward-propagation&quot;&gt;Implementing Forward Propagation&lt;/h2&gt;
+&lt;p&gt;Finally, we have a concise mathematical notation for how to compute the output of our neural network. The algorithm described above is known as &lt;em&gt;forward propagation&lt;/em&gt; and it is the first step to training our neural network. In this section, we will start to implement a neural network from scratch using Python. In the following posts, we will implement &lt;em&gt;back propagation&lt;/em&gt;, complete our neural network, and learn how to recognize handwritten digits using our network.&lt;/p&gt;
+
+&lt;p&gt;You can follow along with this post (and the following posts) using &lt;a href=&quot;&quot;&gt;this Jupyter Notebook&lt;/a&gt;. If you need to refer to the final code at any point, you can &lt;a href=&quot;&quot;&gt;find it here&lt;/a&gt;.&lt;/p&gt;
+
+&lt;h3 id=&quot;initializing-our-neural-network&quot;&gt;Initializing Our Neural Network&lt;/h3&gt;
+&lt;p&gt;Let’s begin by defining a &lt;code class=&quot;highlighter-rouge&quot;&gt;Network&lt;/code&gt; class in &lt;code class=&quot;highlighter-rouge&quot;&gt;network.py&lt;/code&gt;&lt;/p&gt;
+
+&lt;figure class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-python&quot; data-lang=&quot;python&quot;&gt;&lt;span class=&quot;kn&quot;&gt;import&lt;/span&gt; &lt;span class=&quot;nn&quot;&gt;numpy&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;as&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;np&lt;/span&gt;
+
+&lt;span class=&quot;k&quot;&gt;class&lt;/span&gt; &lt;span class=&quot;nc&quot;&gt;Network&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt;
+    &lt;span class=&quot;s&quot;&gt;&quot;&quot;&quot;A vectorized, L-layer neural network.&quot;&quot;&quot;&lt;/span&gt;
+
+    &lt;span class=&quot;k&quot;&gt;def&lt;/span&gt; &lt;span class=&quot;nf&quot;&gt;__init__&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;bp&quot;&gt;self&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;):&lt;/span&gt;
+        &lt;span class=&quot;k&quot;&gt;pass&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/figure&gt;
+
+&lt;p&gt;We want to be able to easily modify the architecture of our neural network, so let’s allow the user to pass in the desired layer sizes as a list. We are going to store our weight matrices and bias vectors in a dictionary called &lt;code class=&quot;highlighter-rouge&quot;&gt;parameters&lt;/code&gt;. Replace the &lt;code class=&quot;highlighter-rouge&quot;&gt;__init__&lt;/code&gt; function with the following.&lt;/p&gt;
+
+&lt;figure class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-python&quot; data-lang=&quot;python&quot;&gt;&lt;span class=&quot;k&quot;&gt;def&lt;/span&gt; &lt;span class=&quot;nf&quot;&gt;__init__&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;bp&quot;&gt;self&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;layer_sizes&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;):&lt;/span&gt;
+    &lt;span class=&quot;s&quot;&gt;&quot;&quot;&quot;Initializes a neural network with the given dimensions.
+
+    Args:
+        layer_sizes (list): Number of units in each layer
+    &quot;&quot;&quot;&lt;/span&gt;
+    &lt;span class=&quot;bp&quot;&gt;self&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;layer_sizes&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;layer_sizes&lt;/span&gt;
+    &lt;span class=&quot;bp&quot;&gt;self&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;num_layers&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;nb&quot;&gt;len&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;layer_sizes&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+    &lt;span class=&quot;bp&quot;&gt;self&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;parameters&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{}&lt;/span&gt;
+    &lt;span class=&quot;bp&quot;&gt;self&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;reset&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;()&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/figure&gt;
+
+&lt;p&gt;At the end of our &lt;code class=&quot;highlighter-rouge&quot;&gt;__init__()&lt;/code&gt; function we call a method &lt;code class=&quot;highlighter-rouge&quot;&gt;reset()&lt;/code&gt;. This method will set our weights and biases to their initial values. In order for our neural network to learn well, we want to initialize the weights to random values. The biases’ initial values don’t matter as much, so we’ll just set them to zero. Recall the expected dimension of each variable, and see how it is reflected in the code.&lt;/p&gt;
+
+&lt;figure class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-python&quot; data-lang=&quot;python&quot;&gt;&lt;span class=&quot;k&quot;&gt;def&lt;/span&gt; &lt;span class=&quot;nf&quot;&gt;reset&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;bp&quot;&gt;self&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;):&lt;/span&gt;
+    &lt;span class=&quot;s&quot;&gt;&quot;&quot;&quot;Randomly initializes all the weights and sets the biases to 0.&quot;&quot;&quot;&lt;/span&gt;
+    &lt;span class=&quot;n&quot;&gt;layer_sizes&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;bp&quot;&gt;self&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;layer_sizes&lt;/span&gt;
+    &lt;span class=&quot;k&quot;&gt;for&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;l&lt;/span&gt; &lt;span class=&quot;ow&quot;&gt;in&lt;/span&gt; &lt;span class=&quot;nb&quot;&gt;range&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;1&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;bp&quot;&gt;self&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;num_layers&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;):&lt;/span&gt;
+        &lt;span class=&quot;bp&quot;&gt;self&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;parameters&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;[&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;'W'&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;+&lt;/span&gt; &lt;span class=&quot;nb&quot;&gt;str&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;l&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)]&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;np&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;random&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;randn&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;layer_sizes&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;[&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;l&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;],&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;layer_sizes&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;[&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;l&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;-&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;1&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;])&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;*&lt;/span&gt; &lt;span class=&quot;mf&quot;&gt;0.01&lt;/span&gt;
+        &lt;span class=&quot;bp&quot;&gt;self&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;parameters&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;[&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;'b'&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;+&lt;/span&gt; &lt;span class=&quot;nb&quot;&gt;str&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;l&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)]&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;np&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;zeros&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;((&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;layer_sizes&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;[&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;l&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;],&lt;/span&gt; &lt;span class=&quot;mi&quot;&gt;1&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;))&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/figure&gt;
+
+&lt;h3 id=&quot;forward-propagation-for-a-single-layer&quot;&gt;Forward Propagation for a Single Layer&lt;/h3&gt;
+&lt;p&gt;Before performing forward propagation for our entire network, let’s first write the code for a single layer. Recall the formulas for a single layer.&lt;/p&gt;
+
+&lt;script type=&quot;math/tex; mode=display&quot;&gt;% &lt;![CDATA[
+\begin{align}
+Z^{[l]} &amp; = W^{[l]} A^{[l-1]} + b^{[l]} \\
+A^{[l]} &amp; = g(Z^{[l]})
+\end{align} %]]&gt;&lt;/script&gt;
+
+&lt;p&gt;These formulas can be easily implemented in code using &lt;code class=&quot;highlighter-rouge&quot;&gt;numpy&lt;/code&gt;. We will assume that the activation function is passed in to the method and takes a single argument &lt;code class=&quot;highlighter-rouge&quot;&gt;Z&lt;/code&gt;. You can ignore the cache for now – it will simplify our training algorithm and will be explained two posts from now.&lt;/p&gt;
+
+&lt;figure class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-python&quot; data-lang=&quot;python&quot;&gt;&lt;span class=&quot;k&quot;&gt;def&lt;/span&gt; &lt;span class=&quot;nf&quot;&gt;forward&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;bp&quot;&gt;self&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;A_prev&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;W&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;b&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;activation&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;):&lt;/span&gt;
+    &lt;span class=&quot;s&quot;&gt;&quot;&quot;&quot;Computes a single layer's output.
+
+    Args:
+        A_prev: The inputs to the layer
+        W: The weights of the layer
+        b: The biases of the layer
+        activation: The activation function to use
+
+    Returns:
+        A: The activation of the layer
+        cache: A tuple (W, A_prev, b, Z, A)
+    &quot;&quot;&quot;&lt;/span&gt;
+    &lt;span class=&quot;n&quot;&gt;Z&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;np&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;dot&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;W&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;A_prev&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;+&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;b&lt;/span&gt;
+    &lt;span class=&quot;n&quot;&gt;A&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;activation&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;Z&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+    &lt;span class=&quot;n&quot;&gt;cache&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;W&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;A_prev&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;b&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;Z&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;A&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+    &lt;span class=&quot;k&quot;&gt;return&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;A&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;cache&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/figure&gt;
+
+&lt;h3 id=&quot;implementing-forward-propagation-1&quot;&gt;Implementing Forward Propagation&lt;/h3&gt;
+&lt;p&gt;Now we can implement forward propagation for our entire network. I know earlier I said to avoid for-loops, but this is one place where we can’t really help it. For now, we are going to assume that all of our hidden units are using ReLU activation and our output units are using sigmoid activation. Because of this, we will handle our hidden layers and our output layer separately. Refer to the following code.&lt;/p&gt;
+
+&lt;figure class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-python&quot; data-lang=&quot;python&quot;&gt;&lt;span class=&quot;k&quot;&gt;def&lt;/span&gt; &lt;span class=&quot;nf&quot;&gt;forward_propagation&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;bp&quot;&gt;self&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;X&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;parameters&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;):&lt;/span&gt;
+    &lt;span class=&quot;s&quot;&gt;&quot;&quot;&quot;Performs forward propagation for the given examples.
+
+    Args:
+        X: The inputs to the NN
+        parameters: The weights and biases of the NN
+
+    Returns:
+        AL: The output of the neural network
+        caches: A list of cached computations
+    &quot;&quot;&quot;&lt;/span&gt;
+    &lt;span class=&quot;c&quot;&gt;# Set A^[0] to be X for cleaner notation&lt;/span&gt;
+    &lt;span class=&quot;n&quot;&gt;A&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;X&lt;/span&gt;
+    &lt;span class=&quot;n&quot;&gt;L&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;bp&quot;&gt;self&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;num_layers&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;-&lt;/span&gt; &lt;span class=&quot;mi&quot;&gt;1&lt;/span&gt;
+    &lt;span class=&quot;n&quot;&gt;parameters&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;bp&quot;&gt;self&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;parameters&lt;/span&gt;
+    &lt;span class=&quot;bp&quot;&gt;self&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;caches&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;[]&lt;/span&gt;
+
+    &lt;span class=&quot;c&quot;&gt;# Hidden layer computations&lt;/span&gt;
+    &lt;span class=&quot;k&quot;&gt;for&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;l&lt;/span&gt; &lt;span class=&quot;ow&quot;&gt;in&lt;/span&gt; &lt;span class=&quot;nb&quot;&gt;range&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;1&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;L&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;):&lt;/span&gt;
+        &lt;span class=&quot;n&quot;&gt;A_prev&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;A&lt;/span&gt;
+        &lt;span class=&quot;n&quot;&gt;Wl&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;parameters&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;[&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;'W'&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;+&lt;/span&gt; &lt;span class=&quot;nb&quot;&gt;str&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;l&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)]&lt;/span&gt;
+        &lt;span class=&quot;n&quot;&gt;bl&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;parameters&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;[&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;'b'&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;+&lt;/span&gt; &lt;span class=&quot;nb&quot;&gt;str&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;l&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)]&lt;/span&gt;
+        &lt;span class=&quot;n&quot;&gt;A&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;cache&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;bp&quot;&gt;self&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;forward&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;A_prev&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;Wl&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;bl&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;relu&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+        &lt;span class=&quot;bp&quot;&gt;self&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;caches&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;append&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;cache&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+
+    &lt;span class=&quot;c&quot;&gt;# Output layer computations&lt;/span&gt;
+    &lt;span class=&quot;n&quot;&gt;WL&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;parameters&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;[&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;'W'&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;+&lt;/span&gt; &lt;span class=&quot;nb&quot;&gt;str&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;L&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)]&lt;/span&gt;
+    &lt;span class=&quot;n&quot;&gt;bL&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;parameters&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;[&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;'b'&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;+&lt;/span&gt; &lt;span class=&quot;nb&quot;&gt;str&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;L&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)]&lt;/span&gt;
+    &lt;span class=&quot;n&quot;&gt;AL&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;cache&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;bp&quot;&gt;self&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;forward&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;A&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;WL&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;bL&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;sigmoid&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+    &lt;span class=&quot;bp&quot;&gt;self&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;caches&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;append&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;cache&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+
+    &lt;span class=&quot;k&quot;&gt;return&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;AL&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;caches&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/figure&gt;
+
+&lt;h3 id=&quot;activation-functions&quot;&gt;Activation Functions&lt;/h3&gt;
+&lt;p&gt;Finally, our &lt;code class=&quot;highlighter-rouge&quot;&gt;forward_propagation()&lt;/code&gt; function uses two currently undefined functions: &lt;code class=&quot;highlighter-rouge&quot;&gt;relu&lt;/code&gt; and &lt;code class=&quot;highlighter-rouge&quot;&gt;sigmoid&lt;/code&gt;. We can define these outside of our class or in a separate file. It is very important that we use &lt;code class=&quot;highlighter-rouge&quot;&gt;numpy&lt;/code&gt; to implement these functions so that they can take vectors as inputs. Here are their implementations in Python.&lt;/p&gt;
+
+&lt;figure class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-python&quot; data-lang=&quot;python&quot;&gt;&lt;span class=&quot;k&quot;&gt;def&lt;/span&gt; &lt;span class=&quot;nf&quot;&gt;sigmoid&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;Z&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;):&lt;/span&gt;
+    &lt;span class=&quot;s&quot;&gt;&quot;&quot;&quot;The sigmoid function.&quot;&quot;&quot;&lt;/span&gt;
+    &lt;span class=&quot;k&quot;&gt;return&lt;/span&gt; &lt;span class=&quot;mf&quot;&gt;1.0&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;/&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;mf&quot;&gt;1.0&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;+&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;np&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;exp&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;-&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;Z&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;))&lt;/span&gt;
+
+&lt;span class=&quot;k&quot;&gt;def&lt;/span&gt; &lt;span class=&quot;nf&quot;&gt;relu&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;Z&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;):&lt;/span&gt;
+    &lt;span class=&quot;s&quot;&gt;&quot;&quot;&quot;The ReLU function.&quot;&quot;&quot;&lt;/span&gt;
+    &lt;span class=&quot;k&quot;&gt;return&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;np&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;maximum&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;Z&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;mi&quot;&gt;0&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/figure&gt;
+
+&lt;h3 id=&quot;conclusion&quot;&gt;Conclusion&lt;/h3&gt;
+&lt;p&gt;And, that’s it. Right now we have a neural network with a fully implemented forward-propagation algorithm. In the next post, we will see how to implement &lt;em&gt;back-propagation&lt;/em&gt; which allows us to train our neural network. After that, we will combine these functions into a single training function and we will make some minor improvements to our network. Finally, we will put our neural network to the test recognizing handwritten digits. Before moving on, test your understanding with the “After Reading This Post” questions.&lt;/p&gt;
+
+&lt;hr /&gt;
+
+&lt;h2 id=&quot;after-reading-this-post-1&quot;&gt;After Reading This Post&lt;/h2&gt;
+
+&lt;p&gt;&lt;img src=&quot;/assets/post02/nn-1.svg&quot; alt=&quot;A 3-Layer Neural Network&quot; width=&quot;300&quot; /&gt;
+&lt;em&gt;Figure 1&lt;/em&gt;&lt;/p&gt;
+
+&lt;p&gt;After reading this post you should be able to answer the following questions:&lt;/p&gt;
+&lt;ol&gt;
+  &lt;li&gt;What are the dimensions of &lt;script type=&quot;math/tex&quot;&gt;W^{[1]}&lt;/script&gt;, &lt;script type=&quot;math/tex&quot;&gt;W^{[2]}&lt;/script&gt;, and &lt;script type=&quot;math/tex&quot;&gt;W^{[3]}&lt;/script&gt; for this network?&lt;/li&gt;
+  &lt;li&gt;What are the dimensions of &lt;script type=&quot;math/tex&quot;&gt;b^{[1]}&lt;/script&gt;, &lt;script type=&quot;math/tex&quot;&gt;b^{[2]}&lt;/script&gt;, and &lt;script type=&quot;math/tex&quot;&gt;b^{[3]}&lt;/script&gt; for this network?&lt;/li&gt;
+  &lt;li&gt;How are &lt;script type=&quot;math/tex&quot;&gt;z^{[i]}&lt;/script&gt; and &lt;script type=&quot;math/tex&quot;&gt;a^{[i]}&lt;/script&gt; different?&lt;/li&gt;
+  &lt;li&gt;How are &lt;script type=&quot;math/tex&quot;&gt;z^{[i]}&lt;/script&gt; and &lt;script type=&quot;math/tex&quot;&gt;a^{[i]}&lt;/script&gt; different from &lt;script type=&quot;math/tex&quot;&gt;Z^{[i]}&lt;/script&gt; and &lt;script type=&quot;math/tex&quot;&gt;A^{[i]}&lt;/script&gt;?&lt;/li&gt;
+&lt;/ol&gt;
+
+&lt;p&gt;Here are the answers&lt;/p&gt;
+&lt;ol&gt;
+  &lt;li&gt;&lt;script type=&quot;math/tex&quot;&gt;(5 \times 2)&lt;/script&gt;, &lt;script type=&quot;math/tex&quot;&gt;(5 \times 5)&lt;/script&gt;, and &lt;script type=&quot;math/tex&quot;&gt;(1 \times 5)&lt;/script&gt; respectively&lt;/li&gt;
+  &lt;li&gt;&lt;script type=&quot;math/tex&quot;&gt;(5 \times 1)&lt;/script&gt;, &lt;script type=&quot;math/tex&quot;&gt;(5 \times 1)&lt;/script&gt;, and &lt;script type=&quot;math/tex&quot;&gt;(1 \times 1)&lt;/script&gt; respectively&lt;/li&gt;
+  &lt;li&gt;&lt;script type=&quot;math/tex&quot;&gt;z^{[i]}&lt;/script&gt; is the result of computing &lt;script type=&quot;math/tex&quot;&gt;W^{[l]} a^{[l-1]} + b^{[i]}&lt;/script&gt;, but has not applied an activation function. &lt;script type=&quot;math/tex&quot;&gt;a^{[i]}&lt;/script&gt; is simply the result of applying an activatio function to &lt;script type=&quot;math/tex&quot;&gt;z^{[i]}&lt;/script&gt;.&lt;/li&gt;
+  &lt;li&gt;&lt;script type=&quot;math/tex&quot;&gt;z^{[i]}&lt;/script&gt; and &lt;script type=&quot;math/tex&quot;&gt;a^{[i]}&lt;/script&gt; are simply column vectors. We get column vectors when we pass a single example through the network at a time. In practice, we will pass an example matrix containing &lt;script type=&quot;math/tex&quot;&gt;m&lt;/script&gt; examples into the network. As a result, we will have &lt;script type=&quot;math/tex&quot;&gt;Z^{[i]}&lt;/script&gt; and &lt;script type=&quot;math/tex&quot;&gt;A^{[i]}&lt;/script&gt; which are matrices containing &lt;script type=&quot;math/tex&quot;&gt;m&lt;/script&gt; columns.&lt;/li&gt;
+&lt;/ol&gt;</content><author><name>Joseph Bergman</name><email>Joseph.T.Bergman@gmail.com</email></author><summary type="html">In the previous post, we looked at what neural networks are and how they compute their output. In this post, we will devise a more concise notation for computing a neural network’s output, and we will start to write some code for a neural network in Python. This post will require some familiarity with both Python and Linear Algebra.</summary></entry><entry><title type="html">Neural Network Basics</title><link href="http://localhost:4000/2018-10-02/neural-network-basics" rel="alternate" type="text/html" title="Neural Network Basics" /><published>2018-10-02T00:00:00+09:00</published><updated>2018-10-02T00:00:00+09:00</updated><id>http://localhost:4000/2018-10-02/neural-network-basics</id><content type="html" xml:base="http://localhost:4000/2018-10-02/neural-network-basics">&lt;p&gt;Throughout the next few posts we will answer the following three questions:&lt;/p&gt;
 
 &lt;ol&gt;
   &lt;li&gt;What is a neural network?&lt;/li&gt;
@@ -15,7 +534,7 @@
 
 &lt;p&gt;Similar to the human brain, a neural network is composed of many smaller and simpler units known as “(artificial) neurons”. Individually, each neuron performs a relatively simple computation, but by feeding the output of one neuron into other neurons we can compute progressively more complex functions. Neural networks currently provide the best solutions to a number of problems in image recognition, speech recognition, and natural language processing.&lt;/p&gt;
 
-&lt;p&gt;&lt;img src=&quot;/deep-learning/assets/post01/nn-example.svg&quot; alt=&quot;Example of a Neural Network&quot; width=&quot;200px&quot; /&gt;
+&lt;p&gt;&lt;img src=&quot;/assets/post01/nn-example.svg&quot; alt=&quot;Example of a Neural Network&quot; width=&quot;200px&quot; /&gt;
 &lt;em&gt;An example of a 5-layer neural network&lt;/em&gt;&lt;/p&gt;
 
 &lt;p&gt;More precisely, a neural network is a map from some input space to a range of output values. The input space and output space will vary depending on the problem. For instance, the input could be a photo of a handwritten digit and the output would be some digit between 0 and 9. In a more complex case, the input could be some photo and the output could be a caption for that photo. What makes neural networks so powerful is that they can learn the mapping between the input and output just by looking at examples.&lt;/p&gt;
@@ -42,7 +561,7 @@ g(z) =
 &lt;p&gt;The function &lt;script type=&quot;math/tex&quot;&gt;g(z)&lt;/script&gt; is an example of an “activation function”, and will be the only thing that changes in our other neurons.&lt;/p&gt;
 
 &lt;h3 id=&quot;example-of-a-perceptron&quot;&gt;Example of a Perceptron&lt;/h3&gt;
-&lt;p&gt;&lt;img src=&quot;/deep-learning/assets/post01/perceptron-example.png&quot; alt=&quot;Example of a Perceptron&quot; /&gt;
+&lt;p&gt;&lt;img src=&quot;/assets/post01/perceptron-example.png&quot; alt=&quot;Example of a Perceptron&quot; /&gt;
 &lt;em&gt;(&lt;a href=&quot;http://neuralnetworksanddeeplearning.com/chap1.html&quot;&gt;source&lt;/a&gt;)&lt;/em&gt;&lt;/p&gt;
 
 &lt;p&gt;The perceptron above takes two inputs &lt;script type=&quot;math/tex&quot;&gt;x_1&lt;/script&gt; and &lt;script type=&quot;math/tex&quot;&gt;x_2&lt;/script&gt; which have corresponding weights &lt;script type=&quot;math/tex&quot;&gt;w_1 = -2&lt;/script&gt; and &lt;script type=&quot;math/tex&quot;&gt;w_2 = -2&lt;/script&gt; as shown. The perceptron has a bias of &lt;script type=&quot;math/tex&quot;&gt;b = 3&lt;/script&gt;. The value of the output depends on the specific values of the inputs. For example, suppose &lt;script type=&quot;math/tex&quot;&gt;x_1 = 1&lt;/script&gt; and &lt;script type=&quot;math/tex&quot;&gt;x_2 = 0&lt;/script&gt;. Then&lt;/p&gt;
@@ -86,7 +605,7 @@ z &amp; = w^T x + b \\
 &lt;h3 id=&quot;problems-with-the-perceptron&quot;&gt;Problems with the Perceptron&lt;/h3&gt;
 &lt;p&gt;Ultimately we want to devise algorithms which allow our neural network to learn the weights &lt;script type=&quot;math/tex&quot;&gt;w&lt;/script&gt; and biases &lt;script type=&quot;math/tex&quot;&gt;b&lt;/script&gt; on its own. To be able to learn, we want a small change to the weights or bias to cause a small change in the corresponding output. If we can achieve this, we can gradually update our weights and biases until our outputs are very accurate. Unfortunately, perceptrons don’t have this feature.&lt;/p&gt;
 
-&lt;p&gt;&lt;img src=&quot;/deep-learning/assets/post01/perceptron-activation.png&quot; alt=&quot;Perceptron Activation Function&quot; height=&quot;200&quot; /&gt;
+&lt;p&gt;&lt;img src=&quot;/assets/post01/perceptron-activation.png&quot; alt=&quot;Perceptron Activation Function&quot; height=&quot;200&quot; /&gt;
 &lt;em&gt;Perceptron Activation Function (&lt;a href=&quot;https://www.codeproject.com/Articles/1216170/Common-Neural-Network-Activation-Functions&quot;&gt;Source&lt;/a&gt;)&lt;/em&gt;&lt;/p&gt;
 
 &lt;p&gt;Looking at the perceptron activation function, we can see that a small change in the weights or biases can have one of two effects:&lt;/p&gt;
@@ -109,7 +628,7 @@ z &amp; = w^T x + b \\
 &lt;/ol&gt;
 
 &lt;h3 id=&quot;the-sigmoid-function&quot;&gt;The Sigmoid Function&lt;/h3&gt;
-&lt;p&gt;&lt;img src=&quot;/deep-learning/assets/post01/sigmoid-activation.png&quot; alt=&quot;Sigmoid Activation Function&quot; height=&quot;200&quot; /&gt;
+&lt;p&gt;&lt;img src=&quot;/assets/post01/sigmoid-activation.png&quot; alt=&quot;Sigmoid Activation Function&quot; height=&quot;200&quot; /&gt;
 &lt;em&gt;Sigmoid Activation Function (&lt;a href=&quot;https://towardsdatascience.com/derivative-of-the-sigmoid-function-536880cf918e&quot;&gt;Source&lt;/a&gt;)&lt;/em&gt;&lt;/p&gt;
 
 &lt;p&gt;The sigmoid function has the following formula&lt;/p&gt;
@@ -123,7 +642,7 @@ z &amp; = w^T x + b \\
 &lt;p&gt;The sigmoid function is both continuous and differentiable as desired. Another useful property of the sigmoid function is that the output of the sigmoid function is always between 0 and 1, so we can interpret the output of the function as a probability.&lt;/p&gt;
 
 &lt;h3 id=&quot;the-hyperbolic-tangent-function&quot;&gt;The Hyperbolic Tangent Function&lt;/h3&gt;
-&lt;p&gt;&lt;img src=&quot;/deep-learning/assets/post01/tanh-activation.jpg&quot; alt=&quot;Hyperbolic Tangent Activation Function&quot; height=&quot;200&quot; /&gt;
+&lt;p&gt;&lt;img src=&quot;/assets/post01/tanh-activation.jpg&quot; alt=&quot;Hyperbolic Tangent Activation Function&quot; height=&quot;200&quot; /&gt;
 &lt;em&gt;Hyperbolic Tangent Activation Function (&lt;a href=&quot;http://www.20sim.com/webhelp/language_reference_functions_tanh.php&quot;&gt;Source&lt;/a&gt;)&lt;/em&gt;&lt;/p&gt;
 
 &lt;p&gt;The hyperbolic tangent function has the following formula&lt;/p&gt;
@@ -139,7 +658,7 @@ z &amp; = w^T x + b \\
 &lt;p&gt;In course one of the &lt;a href=&quot;https://www.coursera.org/specializations/deep-learning&quot;&gt;Deep Learning Specialization&lt;/a&gt; Professor Ng says that hyperbolic tangent is almost always better than the sigmoid function, except for possibly in the output layer where we may want to use the sigmoid function to represent a probability.&lt;/p&gt;
 
 &lt;h3 id=&quot;the-rectified-linear-unit-relu&quot;&gt;The Rectified Linear Unit (ReLU)&lt;/h3&gt;
-&lt;p&gt;&lt;img src=&quot;/deep-learning/assets/post01/relu-activation.png&quot; alt=&quot;ReLU Activation Function&quot; height=&quot;200&quot; /&gt;
+&lt;p&gt;&lt;img src=&quot;/assets/post01/relu-activation.png&quot; alt=&quot;ReLU Activation Function&quot; height=&quot;200&quot; /&gt;
 &lt;em&gt;ReLU Activation Function (&lt;a href=&quot;https://www.learnopencv.com/understanding-activation-functions-in-deep-learning/&quot;&gt;Source&lt;/a&gt;)&lt;/em&gt;&lt;/p&gt;
 
 &lt;p&gt;The ReLU has a very simple formula&lt;/p&gt;
@@ -162,7 +681,7 @@ z &amp; = w^T x + b \\
 z &lt; 0 %]]&gt;&lt;/script&gt; which leads to our final activation function.&lt;/p&gt;
 
 &lt;h3 id=&quot;the-leaky-relu&quot;&gt;The Leaky ReLU&lt;/h3&gt;
-&lt;p&gt;&lt;img src=&quot;/deep-learning/assets/post01/leaky-relu-activation.png&quot; alt=&quot;Leaky ReLU Activation Function&quot; height=&quot;200&quot; /&gt;
+&lt;p&gt;&lt;img src=&quot;/assets/post01/leaky-relu-activation.png&quot; alt=&quot;Leaky ReLU Activation Function&quot; height=&quot;200&quot; /&gt;
 &lt;em&gt;Leaky ReLU Activation Function (&lt;a href=&quot;https://www.learnopencv.com/understanding-activation-functions-in-deep-learning/&quot;&gt;Source&lt;/a&gt;)&lt;/em&gt;&lt;/p&gt;
 
 &lt;p&gt;The Leaky ReLU also has a simple formula&lt;/p&gt;
@@ -187,7 +706,7 @@ z &lt; 0 %]]&gt;&lt;/script&gt;. The Leaky ReLU actually works quite well in pra
 &lt;h2 id=&quot;from-neurons-to-neural-networks&quot;&gt;From Neurons to Neural Networks&lt;/h2&gt;
 &lt;p&gt;Now that we have established what neurons are, how they compute their output, and what activation functions they can use, we can start to discuss neural networks. In this section, we will look at some neural network terminology, and we will compute the output of a neural network by hand. In the next post, we will establish some more mathematical notation to simplify this process.&lt;/p&gt;
 
-&lt;p&gt;&lt;img src=&quot;/deep-learning/assets/post01/nn-terminology-example.svg&quot; alt=&quot;Neural Network Example&quot; height=&quot;250&quot; /&gt;&lt;/p&gt;
+&lt;p&gt;&lt;img src=&quot;/assets/post01/nn-terminology-example.svg&quot; alt=&quot;Neural Network Example&quot; height=&quot;250&quot; /&gt;&lt;/p&gt;
 
 &lt;h3 id=&quot;terminology&quot;&gt;Terminology&lt;/h3&gt;
 &lt;p&gt;Above is a diagram for a simple 2-layer neural network. It may look like there are three layers, but the layer all the way on the left is the “Input Layer” and we don’t count it. Thus the neural network shown above has 2-layers – one hidden layer and one output layer. Since our end-user only cares about the input and the output, we call all the layers in between “hidden layers”. An L-layer neural network will have L-1 hidden layers.&lt;/p&gt;
@@ -249,7 +768,7 @@ w_3 =
 &lt;h3 id=&quot;computing-the-output&quot;&gt;Computing the Output&lt;/h3&gt;
 &lt;p&gt;With all of the values given above we have the following network&lt;/p&gt;
 
-&lt;p&gt;&lt;img src=&quot;/deep-learning/assets/post01/nn-example-labeled.svg&quot; alt=&quot;Labeled Neural Network Example&quot; height=&quot;250&quot; /&gt;&lt;/p&gt;
+&lt;p&gt;&lt;img src=&quot;/assets/post01/nn-example-labeled.svg&quot; alt=&quot;Labeled Neural Network Example&quot; height=&quot;250&quot; /&gt;&lt;/p&gt;
 
 &lt;p&gt;In order to compute our final output, we first have to compute the output of each hidden neuron. We will essentially pass our input values “forward” through the network until we reach the output layer. The computations are below.&lt;/p&gt;
 

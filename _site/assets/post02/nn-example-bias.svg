@@ -1,0 +1,85 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="244px" height="85px" viewBox="0 0 244 85" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+    <!-- Generator: Sketch 44.1 (41455) - http://www.bohemiancoding.com/sketch -->
+    <title>nn-example</title>
+    <desc>Created with Sketch.</desc>
+    <defs></defs>
+    <g id="Practice-Example" stroke="none" stroke-width="1" fill="none" fill-rule="evenodd">
+        <g id="nn-example" transform="translate(1.000000, 1.000000)">
+            <g id="nn" fill-rule="nonzero">
+                <path d="M8.3151768,24.900517 L121.102635,8.31412612" id="Shape" stroke="#505050" stroke-width="0.5" fill="#000000"></path>
+                <path d="M8.3151768,24.900517 L121.102635,41.4869079" id="Shape" stroke="#505050" stroke-width="0.5" fill="#000000"></path>
+                <path d="M8.3151768,24.900517 L121.102635,74.6596898" id="Shape" stroke="#505050" stroke-width="0.5" fill="#000000"></path>
+                <path d="M8.3151768,58.0732989 L121.102635,8.31412612" id="Shape" stroke="#505050" stroke-width="0.5" fill="#000000"></path>
+                <path d="M8.3151768,58.0732989 L121.102635,41.4869079" id="Shape" stroke="#505050" stroke-width="0.5" fill="#000000"></path>
+                <path d="M8.3151768,58.0732989 L121.102635,74.6596898" id="Shape" stroke="#505050" stroke-width="0.5" fill="#000000"></path>
+                <path d="M121.102635,8.31412612 L233.890093,41.4869079" id="Shape" stroke="#505050" stroke-width="0.5" fill="#000000"></path>
+                <path d="M121.102635,41.4869079 L233.890093,41.4869079" id="Shape" stroke="#505050" stroke-width="0.5" fill="#000000"></path>
+                <path d="M121.102635,74.6596898 L233.890093,41.4869079" id="Shape" stroke="#505050" stroke-width="0.5" fill="#000000"></path>
+                <circle id="0_0" stroke="#333333" stroke-width="0.829319546" fill="#FFFFFF" cx="8.3151768" cy="24.900517" r="8.29319546"></circle>
+                <circle id="0_1" stroke="#333333" stroke-width="0.829319546" fill="#FFFFFF" cx="8.3151768" cy="58.0732989" r="8.29319546"></circle>
+                <circle id="0_2" stroke="#333333" stroke-width="0.829319546" fill="#FFFFFF" cx="121.102635" cy="8.31412612" r="8.29319546"></circle>
+                <circle id="0_3" stroke="#333333" stroke-width="0.829319546" fill="#FFFFFF" cx="121.102635" cy="41.4869079" r="8.29319546"></circle>
+                <circle id="0_4" stroke="#333333" stroke-width="0.829319546" fill="#FFFFFF" cx="121.102635" cy="74.6596898" r="8.29319546"></circle>
+                <circle id="0_5" stroke="#333333" stroke-width="0.829319546" fill="#FFFFFF" cx="233.890093" cy="41.4869079" r="8.29319546"></circle>
+            </g>
+            <text id="b-=-3" font-family="SFUIDisplay-Regular, SF UI Display" font-size="4" font-weight="normal" fill="#313237">
+                <tspan x="117" y="78">b = 3</tspan>
+            </text>
+            <text id="b-=-2" font-family="SFUIDisplay-Regular, SF UI Display" font-size="4" font-weight="normal" fill="#313237">
+                <tspan x="117" y="45">b = 2</tspan>
+            </text>
+            <text id="b-=-1" font-family="SFUIDisplay-Regular, SF UI Display" font-size="4" font-weight="normal" fill="#313237">
+                <tspan x="117" y="11">b = 1</tspan>
+            </text>
+            <text id="b-=--2" font-family="SFUIDisplay-Regular, SF UI Display" font-size="4" font-weight="normal" fill="#313237">
+                <tspan x="229" y="45">b = -2</tspan>
+            </text>
+            <text id="-1" fill="#313237" font-family="SFUIDisplay-Regular, SF UI Display" font-size="4" font-weight="normal">
+                <tspan x="208" y="29">-1</tspan>
+            </text>
+            <text id="-1" fill="#313237" font-family="SFUIDisplay-Regular, SF UI Display" font-size="4" font-weight="normal">
+                <tspan x="106" y="64">-1</tspan>
+            </text>
+            <text id="0" fill="#313237" font-family="SFUIDisplay-Regular, SF UI Display" font-size="4" font-weight="normal">
+                <tspan x="208" y="40">0</tspan>
+            </text>
+            <text id="x1-=-1" fill="#313237" font-family="SFUIDisplay-Regular, SF UI Display" font-size="4" font-weight="normal">
+                <tspan x="3" y="26">x1 = 1</tspan>
+            </text>
+            <text id="x2-=-2" fill="#313237" font-family="SFUIDisplay-Regular, SF UI Display" font-size="4" font-weight="normal">
+                <tspan x="3" y="59">x2 = 2</tspan>
+            </text>
+            <text id="0.25" fill="#313237" font-family="SFUIDisplay-Regular, SF UI Display" font-size="4" font-weight="normal">
+                <tspan x="101" y="8">0.25</tspan>
+            </text>
+            <text id="-0.5" fill="#313237" font-family="SFUIDisplay-Regular, SF UI Display" font-size="4" font-weight="normal">
+                <tspan x="102" y="37">-0.5</tspan>
+            </text>
+            <text id="0.5" fill="#313237" font-family="SFUIDisplay-Regular, SF UI Display" font-size="4" font-weight="normal">
+                <tspan x="103" y="50">0.5</tspan>
+            </text>
+            <text id="1" fill="#313237" font-family="SFUIDisplay-Regular, SF UI Display" font-size="4" font-weight="normal">
+                <tspan x="209" y="55">1</tspan>
+            </text>
+            <text id="1" fill="#313237" font-family="SFUIDisplay-Regular, SF UI Display" font-size="4" font-weight="normal">
+                <tspan x="106" y="78">1</tspan>
+            </text>
+            <text id="-0.25" fill="#313237" font-family="SFUIDisplay-Regular, SF UI Display" font-size="4" font-weight="normal">
+                <tspan x="102" y="21">-0.25</tspan>
+            </text>
+            <text id="ReLU" fill="#313237" font-family="SFUIDisplay-Regular, SF UI Display" font-size="4" font-weight="normal">
+                <tspan x="116" y="5">ReLU</tspan>
+            </text>
+            <text id="ReLU" fill="#313237" font-family="SFUIDisplay-Regular, SF UI Display" font-size="4" font-weight="normal">
+                <tspan x="117" y="39">ReLU</tspan>
+            </text>
+            <text id="ReLU" fill="#313237" font-family="SFUIDisplay-Regular, SF UI Display" font-size="4" font-weight="normal">
+                <tspan x="117" y="72">ReLU</tspan>
+            </text>
+            <text id="Sigmoid" fill="#313237" font-family="SFUIDisplay-Regular, SF UI Display" font-size="4" font-weight="normal">
+                <tspan x="227" y="40">Sigmoid</tspan>
+            </text>
+        </g>
+    </g>
+</svg>

@@ -1,0 +1,598 @@
+<!DOCTYPE html>
+<html lang="en">
+
+  <head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+
+  <title>
+    
+      Forward Propagation &middot; Deep Learning
+    
+  </title>
+
+  <!-- CSS -->
+  <link rel="stylesheet" href="/assets/main.css">
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Libre+Baskerville:400,400i,700">
+
+  <!-- MathJax -->
+  <script type="text/javascript" async src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-MML-AM_CHTML"></script>
+
+  <!-- Favicon -->
+  <!-- <link rel="icon" type="image/png" sizes="32x32" href="/assets/favicon-32x32.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/assets/favicon-16x16.png"> -->
+  <link rel="icon" type="image/x-icon" href="/assets/favicon.ico">
+  <link rel="shortcut icon" type="image/x-icon" href="/assets/favicon.ico">
+  <link rel="apple-touch-icon" sizes="256x256" href="/assets/apple-touch-icon.png">
+
+  <!-- RSS -->
+  <link type="application/atom+xml" rel="alternate" href="http://localhost:4000/feed.xml" title="Deep Learning" />
+</head>
+
+
+  <body>
+    <nav class="nav">
+      <div class="nav-container">
+        <a href="/">
+          <h2 class="nav-title">Deep Learning</h2>
+        </a>
+        <ul>
+          <li><a href="/">Posts</a></li>
+          <li><a href="/about">About</a></li>
+        </ul>
+      </div>
+    </nav>
+
+    <main>
+      <div class="post">
+
+  <h1 class="post-title">Forward Propagation</h1>
+  <div class="post-line"></div>
+
+  <p>In the previous post, we looked at what neural networks are and how they compute their output. In this post, we will devise a more concise notation for computing a neural network’s output, and we will start to write some code for a neural network in Python. This post will require some familiarity with both <a href="http://www.diveintopython3.net/">Python</a> and <a href="https://www.khanacademy.org/math/linear-algebra">Linear Algebra</a>.</p>
+
+<hr />
+
+<h2 id="after-reading-this-post">After Reading This Post</h2>
+
+<p><img src="/assets/post02/nn-1.svg" alt="A 3-Layer Neural Network" width="300" />
+<em>Figure 1</em></p>
+
+<p>After reading this post you should be able to answer the following questions:</p>
+<ol>
+  <li>What are the dimensions of <script type="math/tex">W^{[1]}</script>, <script type="math/tex">W^{[2]}</script>, and <script type="math/tex">W^{[3]}</script> for this network?</li>
+  <li>What are the dimensions of <script type="math/tex">b^{[1]}</script>, <script type="math/tex">b^{[2]}</script>, and <script type="math/tex">b^{[3]}</script> for this network?</li>
+  <li>How are <script type="math/tex">z^{[i]}</script> and <script type="math/tex">a^{[i]}</script> different?</li>
+  <li>How are <script type="math/tex">z^{[i]}</script> and <script type="math/tex">a^{[i]}</script> different from <script type="math/tex">Z^{[i]}</script> and <script type="math/tex">A^{[i]}</script>?</li>
+</ol>
+
+<p>The answers are provided at the end!</p>
+
+<hr />
+
+<h2 id="the-weight-matrix-wi">The Weight Matrix <script type="math/tex">W^{[i]}</script></h2>
+<p>In the previous post, when we computed the output of our neural network, we took the inputs and fed them into each neuron individually. We were able to represent our inputs and weights as vectors, so we could simplify the computation for each neuron to the following dot product.</p>
+
+<script type="math/tex; mode=display">z = w^T x \quad \text{($+b$, which we are ignoring for now)}</script>
+
+<p>Doing this for every neuron individually is rather tedious. The value of <script type="math/tex">x</script> never changes – we just multiply it by different weights repeatedly. It turns out we can compute this dot product for every neuron in a layer at once by putting the weight vectors into a matrix <script type="math/tex">W</script>. Then, all we have to do is compute the following</p>
+
+<script type="math/tex; mode=display">z = W x</script>
+
+<h3 id="a-practice-example">A Practice Example</h3>
+<p><img src="/assets/post02/nn-example.svg" alt="Our example network" height="175" /></p>
+
+<p>Previously, we were computing three separate dot products for the first layer.</p>
+
+<script type="math/tex; mode=display">% <![CDATA[
+\begin{align}
+z_{h1} & = w^T x \\
+& = 0.25\cdot x_1 + -0.25\cdot x_2
+\end{align} %]]></script>
+
+<script type="math/tex; mode=display">% <![CDATA[
+\begin{align}
+z_{h2} & = w^T x \\
+  & = -0.5\cdot x_1 + 0.5\cdot x_2
+\end{align} %]]></script>
+
+<script type="math/tex; mode=display">% <![CDATA[
+\begin{align}
+z_{h2} & = w^T x \\
+  & = -1\cdot x_1 + 1\cdot x_2
+\end{align} %]]></script>
+
+<p>Instead, we can just perform a single matrix-vector multiplication</p>
+
+<script type="math/tex; mode=display">% <![CDATA[
+\begin{align}
+z &= W x \\
+& =
+\begin{bmatrix}
+0.25 & -0.25 \\
+-0.5 & 0.5 \\
+-1.0 & 1.0 \\
+\end{bmatrix}
+
+\begin{bmatrix}
+x_1 \\
+x_2 \\
+\end{bmatrix}
+
+\end{align} %]]></script>
+
+<p>Now, instead of being a single value, <script type="math/tex">z</script> will also be a vector.</p>
+
+<script type="math/tex; mode=display">z =  
+\begin{bmatrix}
+-0.25 \\
+0.5 \\
+1.0 \\
+\end{bmatrix}</script>
+
+<p>We will have a weight matrix for each layer of our neural network, so we will label them with a bracketed superscript. Therefore, the example shown above can be written concisely as</p>
+
+<script type="math/tex; mode=display">z = W^{[1]} x</script>
+
+<p>In practice, we will give all of our weight matrices random weights. Therefore, the only thing you need to remember about the weight-matrix is its dimensions – you don’t have to worry about what weight goes where. Below is a summary of what you need to remember.</p>
+
+<h3 id="weight-matrix-dimensions">Weight Matrix Dimensions</h3>
+<p>The weight matrix <script type="math/tex">W^{[l]}</script> has dimensions <script type="math/tex">n^{[l]} \times n^{[l-1]}</script> where <script type="math/tex">n^{[l]}</script> is the number of units in layer <script type="math/tex">l</script>. This is easy to remember for two reasons: (1) It has to have <script type="math/tex">n_l</script> rows so that there is one output per neuron, and (2) It has to have <script type="math/tex">n_{l-1}</script> columns or we couldn’t multiply it by its input – the dimensions would not match!</p>
+
+<hr />
+
+<h2 id="the-bias-vector-bi">The Bias Vector <script type="math/tex">b^{[i]}</script></h2>
+<p>As you may recall, each neuron also has a bias associated with it, which is just some scalar value. In order to “linear algebra-ify” our neural network computations, we will put all the biases into a vector. So originally we computed the following for each neuron</p>
+
+<script type="math/tex; mode=display">z = w^T x + b</script>
+
+<p>And now we will compute the following</p>
+
+<script type="math/tex; mode=display">z = W^{[l]}x + b^{[l]}</script>
+
+<p>This isn’t too different from what we did before. The only difference is that <script type="math/tex">b^{[l]}</script> is an <script type="math/tex">n^{[l]} \times 1</script> column vector containing the biases for each neuron in layer <script type="math/tex">l</script>.</p>
+
+<h3 id="a-practice-example-1">A Practice Example</h3>
+<p><img src="/assets/post02/nn-example-bias.svg" alt="Our example network with biases" height="175" />
+<em>Example with Biases</em></p>
+
+<p>Here is a quick example with biases added. The dimensions of <script type="math/tex">Wx</script> and <script type="math/tex">b</script> have to match.</p>
+
+<script type="math/tex; mode=display">% <![CDATA[
+\begin{align}
+z &= W^{[1]} x + b^{[1]} \\
+
+&=
+\begin{bmatrix}
+0.25 & -0.25 \\
+-0.5 & 0.5 \\
+-1.0 & 1.0 \\
+\end{bmatrix}
+
+\begin{bmatrix}
+x_1 \\
+x_2 \\
+\end{bmatrix}
+
++
+\begin{bmatrix}
+1 \\
+2 \\
+3 \\
+\end{bmatrix} \\
+
+&=
+\begin{bmatrix}
+-0.25 \\
+0.5 \\
+1.0 \\
+\end{bmatrix}
+
++
+\begin{bmatrix}
+1 \\
+2 \\
+3 \\
+\end{bmatrix} \\
+
+&=
+\begin{bmatrix}
+0.75 \\
+2.5 \\
+4.0 \\
+\end{bmatrix}
+
+\end{align} %]]></script>
+
+<hr />
+
+<h2 id="the-layer-outputs-zi-and-ai">The Layer Outputs <script type="math/tex">z^{[i]}</script> and <script type="math/tex">a^{[i]}</script></h2>
+<p>So far, we have been looking at computing the outputs of just the first layer. Furthermore, we have only been looking at how to calculate <script type="math/tex">z</script>. We have to apply some activation function (ReLU, Sigmoid, etc.) to the output of every neuron to get the activation of the layer, <script type="math/tex">a</script>.</p>
+
+<p>In the first layer, we will begin by computing the following</p>
+
+<script type="math/tex; mode=display">z^{[1]} = W^{[1]} x + b^{[1]}</script>
+
+<p>Then, we apply some activation function <script type="math/tex">g(\cdot)</script> to get</p>
+
+<script type="math/tex; mode=display">a^{[1]} = g(z)</script>
+
+<p>This activation vectors, <script type="math/tex">a^{[1]}</script>, will then be the input to the next layer, giving us the following formula for the remaining layers in our network.</p>
+
+<script type="math/tex; mode=display">z^{[l]} = W^{[l]} a^{[l-1]} + b^{[l]} \qquad \text{for all $l > 2$}</script>
+
+<p>To simplify this formula, we are going to refer to the input <script type="math/tex">x</script> as <script type="math/tex">a^{[0]}</script> from now on. This gives us just two formulas to remember when computing the output of our neural network.</p>
+
+<script type="math/tex; mode=display">% <![CDATA[
+\begin{align}
+z^{[l]} & = W^{[l]} a^{[l-1]} + b^{[l]} \\
+a^{[l]} & = g(z)
+\end{align} %]]></script>
+
+<h3 id="a-practice-example-2">A Practice Example</h3>
+<p><img src="/assets/post02/nn-example-bias.svg" alt="Our example network with biases" height="175" />
+<em>A Full Example</em></p>
+
+<p>Using our new notation, let’s compute the output of this network.</p>
+
+<p>First we compute the output of layer one.</p>
+
+<script type="math/tex; mode=display">% <![CDATA[
+\begin{align}
+z^{[1]} & = W^{[1]} a^{[0]} + b^{[1]} \\
+
+& =
+\begin{bmatrix}
+0.25 & -0.25 \\
+-0.5 & 0.5 \\
+-1.0 & 1.0 \\
+\end{bmatrix}
+
+\begin{bmatrix}
+1 \\
+2 \\
+\end{bmatrix}
+
++
+\begin{bmatrix}
+1 \\
+2 \\
+3 \\
+\end{bmatrix} \\
+
+& =
+
+\begin{bmatrix}
+-0.25 \\
+0.5 \\
+1.0 \\
+\end{bmatrix}
+
++
+\begin{bmatrix}
+1 \\
+2 \\
+3 \\
+\end{bmatrix} \\
+
+&=
+\begin{bmatrix}
+0.75 \\
+2.5 \\
+4.0 \\
+\end{bmatrix} \\
+
+a^{[1]} &= ReLU(z^{[1]}) \\
+
+&=
+\begin{bmatrix}
+0.75 \\
+2.5 \\
+4.0 \\
+\end{bmatrix}
+\end{align} %]]></script>
+
+<p>Next, we compute the output of the output layer.</p>
+
+<script type="math/tex; mode=display">% <![CDATA[
+\begin{align}
+z^{[2]} & = W^{[2]} a^{[1]} + b^{[2]} \\
+
+& =
+\begin{bmatrix}
+-1 & 0 & 1 \\
+\end{bmatrix}
+
+\begin{bmatrix}
+0.75 \\
+2.5 \\
+4.0 \\
+\end{bmatrix}
+
++
+\begin{bmatrix}
+-2 \\
+\end{bmatrix} \\
+
+& =
+\begin{bmatrix}
+1.25 \\
+\end{bmatrix} \\
+
+a^{[2]} &= \sigma(z^{[2]}) \\
+
+&=
+\sigma([1.25]) \\
+
+& \approx
+0.7772999
+\end{align} %]]></script>
+
+<p>So the output of our network for the given weights, biases, and inputs is approximately <script type="math/tex">0.7772999</script>.</p>
+
+<hr />
+
+<h2 id="working-with-multiple-examples">Working with Multiple Examples</h2>
+<p>This is the last thing we need to discuss before we can begin implementing our neural network. In the previous example, our neural network was given just one set of inputs and was asked to give the corresponding output. In practice, however, we will want to show our neural network thousands (sometimes millions) of examples for it to learn from. Unlike humans, neural networks need to see lots of examples to learn. Therefore, we need an efficient way to feed thousands of examples into our network.</p>
+
+<h3 id="the-importance-of-vectorization">The Importance of Vectorization</h3>
+<p>If you have a programming background, you might be thinking, “Let’s  use a for-loop and feed all of the examples through one at a time.” This would work, but it would be very slow. When working with neural networks, we want to avoid for-loops as much as possible and write vectorized code. We usually avoid for-loops by using built-in functions from the <code class="highlighter-rouge">numpy</code> library. As an example of how much faster vectorized code is, here is an example which computes the dot product of two vectors.</p>
+
+<figure class="highlight"><pre><code class="language-python" data-lang="python"><span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="n">np</span>
+<span class="kn">import</span> <span class="nn">time</span>
+
+<span class="c"># Generate two random vectors</span>
+<span class="n">n</span> <span class="o">=</span> <span class="mi">10000000</span>
+<span class="n">x</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">randn</span><span class="p">(</span><span class="n">n</span><span class="p">)</span>
+<span class="n">y</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">randn</span><span class="p">(</span><span class="n">n</span><span class="p">)</span>
+
+<span class="c"># Compute their dot-product with a for-loop</span>
+<span class="n">tic</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span>
+<span class="n">z1</span> <span class="o">=</span> <span class="mi">0</span>
+<span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">n</span><span class="p">):</span>
+    <span class="n">z1</span> <span class="o">+=</span> <span class="n">x</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">*</span> <span class="n">y</span><span class="p">[</span><span class="n">i</span><span class="p">]</span>
+<span class="n">toc</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span>
+<span class="n">time1</span> <span class="o">=</span> <span class="n">toc</span> <span class="o">-</span> <span class="n">tic</span>
+<span class="k">print</span><span class="p">(</span><span class="s">"For Loop"</span><span class="p">)</span>
+<span class="k">print</span><span class="p">(</span><span class="s">"--------"</span><span class="p">)</span>
+<span class="k">print</span><span class="p">(</span><span class="s">"Out: "</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">z1</span><span class="p">))</span>
+<span class="k">print</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">time1</span><span class="o">*</span><span class="mi">1000</span><span class="p">)</span> <span class="o">+</span> <span class="s">"ms</span><span class="se">\n\n</span><span class="s">"</span><span class="p">)</span>
+
+<span class="c"># Compute their dot-product with numpy</span>
+<span class="n">tic</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span>
+<span class="n">z2</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">x</span><span class="p">,</span><span class="n">y</span><span class="p">)</span>
+<span class="n">toc</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span>
+<span class="n">time2</span> <span class="o">=</span> <span class="n">toc</span> <span class="o">-</span> <span class="n">tic</span>
+<span class="k">print</span><span class="p">(</span><span class="s">"Vectorized"</span><span class="p">)</span>
+<span class="k">print</span><span class="p">(</span><span class="s">"----------"</span><span class="p">)</span>
+<span class="k">print</span><span class="p">(</span><span class="s">"Out: "</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">z2</span><span class="p">))</span>
+<span class="k">print</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">time2</span><span class="o">*</span><span class="mi">1000</span><span class="p">)</span> <span class="o">+</span> <span class="s">"ms</span><span class="se">\n\n</span><span class="s">"</span><span class="p">)</span>
+
+<span class="c"># How different are the results?</span>
+<span class="k">print</span><span class="p">(</span><span class="s">"Difference"</span><span class="p">)</span>
+<span class="k">print</span><span class="p">(</span><span class="s">"----------"</span><span class="p">)</span>
+<span class="k">print</span><span class="p">(</span><span class="s">"For Loop is "</span> <span class="o">+</span> <span class="nb">str</span> <span class="p">(</span><span class="n">time1</span><span class="o">/</span><span class="n">time2</span><span class="p">)</span> <span class="o">+</span> <span class="s">" times slower."</span><span class="p">)</span></code></pre></figure>
+
+<p>And here is the output of that program</p>
+
+<figure class="highlight"><pre><code class="language-python" data-lang="python"><span class="n">For</span> <span class="n">Loop</span>
+<span class="o">--------</span>
+<span class="n">Out</span><span class="p">:</span> <span class="o">-</span><span class="mf">569.032297628</span>
+<span class="mf">4745.116949081421</span><span class="n">ms</span>
+
+<span class="n">Vectorized</span>
+<span class="o">----------</span>
+<span class="n">Out</span><span class="p">:</span> <span class="o">-</span><span class="mf">569.032297628</span>
+<span class="mf">39.34192657470703</span><span class="n">ms</span>
+
+<span class="n">Difference</span>
+<span class="o">----------</span>
+<span class="n">For</span> <span class="n">Loop</span> <span class="ow">is</span> <span class="mf">120.6122160812547</span> <span class="n">times</span> <span class="n">slower</span><span class="o">.</span></code></pre></figure>
+
+<p>To put that in perspective, 120 times slower could be the difference between a neural network that takes one minute to train and a neural network that takes two hours to train. To really put that in perspective, could you imagine paying to train a model in the cloud for two hours when you could have trained it in just one minute? For more explanation on <em>why</em> vectorized code is faster, check out <a href="https://stackoverflow.com/questions/35091979/why-is-vectorization-faster-in-general-than-loops">this StackOverflow post</a>.</p>
+
+<h3 id="feeding-in-multiple-examples">Feeding in Multiple Examples</h3>
+<p>Rather than using a for-loop to feed in multiple examples, we are going to make one final modification to our formulas. Currently, we are using the following equations for computing the output of a network. In these formulas, everything is a column vector except for the weight matrix.</p>
+
+<script type="math/tex; mode=display">% <![CDATA[
+\begin{align}
+z^{[l]} & = W^{[l]} a^{[l-1]} + b^{[l]} \\
+a^{[l]} & = g(z)
+\end{align} %]]></script>
+
+<p>Now, we are going to replace our input vector <script type="math/tex">a^{[0]}</script> with an input matrix <script type="math/tex">A^{[0]}</script>. The matrix <script type="math/tex">A^{[0]}</script> will have dimensions <script type="math/tex">n_0 \times m</script> – in other words, we will take all of our examples, and put them in a single matrix arranged by columns. As a result, the dimensions of our other variables will change.</p>
+<ul>
+  <li><script type="math/tex">W^{[l]}</script> is still an <script type="math/tex">(n^{[l]} \times n^{[l-1]})</script> matrix.</li>
+  <li><script type="math/tex">A^{[l-1]}</script> is an <script type="math/tex">(n^{[l-1]} \times m)</script> matrix.</li>
+  <li><script type="math/tex">Z^{[l]}</script> therefore, is an <script type="math/tex">(n^{[l]} \times m)</script> matrix.</li>
+  <li><script type="math/tex">A^{[l]}</script> will then be an <script type="math/tex">(n^{[l]} \times m)</script> matrix as well.</li>
+</ul>
+
+<p>However, <script type="math/tex">b^{[l]}</script> actually does not change. It is still a column vector with dimensions <script type="math/tex">(n^{[l]} \times 1)</script>. Adding <script type="math/tex">b^{[l]}</script>, an <script type="math/tex">(n^{[l]} \times 1)</script> vector, to <script type="math/tex">W^{[l]} A^{[l-1]}</script>, an <script type="math/tex">(n^{[l]} \times m)</script> matrix, is technically not defined. What we’re actually going to do is add the vector to each column of the matrix. We could duplicate the bias vector <script type="math/tex">m</script> times to create a matrix with the correct dimensions, but this is unnecessary. Since the number of rows in <script type="math/tex">b</script> matches the number of rows in <script type="math/tex">W^{[l]} A^{[l-1]}</script> Python will use <a href="http://cs231n.github.io/python-numpy-tutorial/#numpy-broadcasting">broadcasting</a> to automatically add the vector to each column.</p>
+
+<h3 id="our-final-formulas">Our Final Formulas</h3>
+<p>Based on the previous changes, we now have the following formulas.</p>
+
+<script type="math/tex; mode=display">% <![CDATA[
+\begin{align}
+Z^{[l]} & = W^{[l]} A^{[l-1]} + b^{[l]} \\
+A^{[l]} & = g(Z^{[l]})
+\end{align} %]]></script>
+
+<p>The dimensions are as follows</p>
+<ul>
+  <li><script type="math/tex">W^{[l]}</script> is an <script type="math/tex">(n^{[l]} \times n^{[l-1]})</script> matrix.</li>
+  <li><script type="math/tex">A^{[l-1]}</script> is an <script type="math/tex">(n^{[l-1]} \times m)</script> matrix.</li>
+  <li><script type="math/tex">Z^{[l]}</script> is an <script type="math/tex">(n^{[l]} \times m)</script> matrix.</li>
+  <li><script type="math/tex">A^{[l]}</script> is an <script type="math/tex">(n^{[l]} \times m)</script> matrix.</li>
+  <li><script type="math/tex">b^{[l]}</script> is an <script type="math/tex">(n^{[l]} \times 1)</script> column vector</li>
+</ul>
+
+<hr />
+
+<h2 id="implementing-forward-propagation">Implementing Forward Propagation</h2>
+<p>Finally, we have a concise mathematical notation for how to compute the output of our neural network. The algorithm described above is known as <em>forward propagation</em> and it is the first step to training our neural network. In this section, we will start to implement a neural network from scratch using Python. In the following posts, we will implement <em>back propagation</em>, complete our neural network, and learn how to recognize handwritten digits using our network.</p>
+
+<p>You can follow along with this post (and the following posts) using <a href="">this Jupyter Notebook</a>. If you need to refer to the final code at any point, you can <a href="">find it here</a>.</p>
+
+<h3 id="initializing-our-neural-network">Initializing Our Neural Network</h3>
+<p>Let’s begin by defining a <code class="highlighter-rouge">Network</code> class in <code class="highlighter-rouge">network.py</code></p>
+
+<figure class="highlight"><pre><code class="language-python" data-lang="python"><span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="n">np</span>
+
+<span class="k">class</span> <span class="nc">Network</span><span class="p">:</span>
+    <span class="s">"""A vectorized, L-layer neural network."""</span>
+
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">pass</span></code></pre></figure>
+
+<p>We want to be able to easily modify the architecture of our neural network, so let’s allow the user to pass in the desired layer sizes as a list. We are going to store our weight matrices and bias vectors in a dictionary called <code class="highlighter-rouge">parameters</code>. Replace the <code class="highlighter-rouge">__init__</code> function with the following.</p>
+
+<figure class="highlight"><pre><code class="language-python" data-lang="python"><span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">layer_sizes</span><span class="p">):</span>
+    <span class="s">"""Initializes a neural network with the given dimensions.
+
+    Args:
+        layer_sizes (list): Number of units in each layer
+    """</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">layer_sizes</span> <span class="o">=</span> <span class="n">layer_sizes</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">num_layers</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">layer_sizes</span><span class="p">)</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">parameters</span> <span class="o">=</span> <span class="p">{}</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">reset</span><span class="p">()</span></code></pre></figure>
+
+<p>At the end of our <code class="highlighter-rouge">__init__()</code> function we call a method <code class="highlighter-rouge">reset()</code>. This method will set our weights and biases to their initial values. In order for our neural network to learn well, we want to initialize the weights to random values. The biases’ initial values don’t matter as much, so we’ll just set them to zero. Recall the expected dimension of each variable, and see how it is reflected in the code.</p>
+
+<figure class="highlight"><pre><code class="language-python" data-lang="python"><span class="k">def</span> <span class="nf">reset</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="s">"""Randomly initializes all the weights and sets the biases to 0."""</span>
+    <span class="n">layer_sizes</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">layer_sizes</span>
+    <span class="k">for</span> <span class="n">l</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">num_layers</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">parameters</span><span class="p">[</span><span class="s">'W'</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">l</span><span class="p">)]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">randn</span><span class="p">(</span><span class="n">layer_sizes</span><span class="p">[</span><span class="n">l</span><span class="p">],</span> <span class="n">layer_sizes</span><span class="p">[</span><span class="n">l</span><span class="o">-</span><span class="mi">1</span><span class="p">])</span> <span class="o">*</span> <span class="mf">0.01</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">parameters</span><span class="p">[</span><span class="s">'b'</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">l</span><span class="p">)]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="n">layer_sizes</span><span class="p">[</span><span class="n">l</span><span class="p">],</span> <span class="mi">1</span><span class="p">))</span></code></pre></figure>
+
+<h3 id="forward-propagation-for-a-single-layer">Forward Propagation for a Single Layer</h3>
+<p>Before performing forward propagation for our entire network, let’s first write the code for a single layer. Recall the formulas for a single layer.</p>
+
+<script type="math/tex; mode=display">% <![CDATA[
+\begin{align}
+Z^{[l]} & = W^{[l]} A^{[l-1]} + b^{[l]} \\
+A^{[l]} & = g(Z^{[l]})
+\end{align} %]]></script>
+
+<p>These formulas can be easily implemented in code using <code class="highlighter-rouge">numpy</code>. We will assume that the activation function is passed in to the method and takes a single argument <code class="highlighter-rouge">Z</code>. You can ignore the cache for now – it will simplify our training algorithm and will be explained two posts from now.</p>
+
+<figure class="highlight"><pre><code class="language-python" data-lang="python"><span class="k">def</span> <span class="nf">forward</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">A_prev</span><span class="p">,</span> <span class="n">W</span><span class="p">,</span> <span class="n">b</span><span class="p">,</span> <span class="n">activation</span><span class="p">):</span>
+    <span class="s">"""Computes a single layer's output.
+
+    Args:
+        A_prev: The inputs to the layer
+        W: The weights of the layer
+        b: The biases of the layer
+        activation: The activation function to use
+
+    Returns:
+        A: The activation of the layer
+        cache: A tuple (W, A_prev, b, Z, A)
+    """</span>
+    <span class="n">Z</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">W</span><span class="p">,</span><span class="n">A_prev</span><span class="p">)</span> <span class="o">+</span> <span class="n">b</span>
+    <span class="n">A</span> <span class="o">=</span> <span class="n">activation</span><span class="p">(</span><span class="n">Z</span><span class="p">)</span>
+    <span class="n">cache</span> <span class="o">=</span> <span class="p">(</span><span class="n">W</span><span class="p">,</span> <span class="n">A_prev</span><span class="p">,</span> <span class="n">b</span><span class="p">,</span> <span class="n">Z</span><span class="p">,</span> <span class="n">A</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">A</span><span class="p">,</span> <span class="n">cache</span></code></pre></figure>
+
+<h3 id="implementing-forward-propagation-1">Implementing Forward Propagation</h3>
+<p>Now we can implement forward propagation for our entire network. I know earlier I said to avoid for-loops, but this is one place where we can’t really help it. For now, we are going to assume that all of our hidden units are using ReLU activation and our output units are using sigmoid activation. Because of this, we will handle our hidden layers and our output layer separately. Refer to the following code.</p>
+
+<figure class="highlight"><pre><code class="language-python" data-lang="python"><span class="k">def</span> <span class="nf">forward_propagation</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">X</span><span class="p">,</span> <span class="n">parameters</span><span class="p">):</span>
+    <span class="s">"""Performs forward propagation for the given examples.
+
+    Args:
+        X: The inputs to the NN
+        parameters: The weights and biases of the NN
+
+    Returns:
+        AL: The output of the neural network
+        caches: A list of cached computations
+    """</span>
+    <span class="c"># Set A^[0] to be X for cleaner notation</span>
+    <span class="n">A</span> <span class="o">=</span> <span class="n">X</span>
+    <span class="n">L</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">num_layers</span> <span class="o">-</span> <span class="mi">1</span>
+    <span class="n">parameters</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">parameters</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">caches</span> <span class="o">=</span> <span class="p">[]</span>
+
+    <span class="c"># Hidden layer computations</span>
+    <span class="k">for</span> <span class="n">l</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="n">L</span><span class="p">):</span>
+        <span class="n">A_prev</span> <span class="o">=</span> <span class="n">A</span>
+        <span class="n">Wl</span> <span class="o">=</span> <span class="n">parameters</span><span class="p">[</span><span class="s">'W'</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">l</span><span class="p">)]</span>
+        <span class="n">bl</span> <span class="o">=</span> <span class="n">parameters</span><span class="p">[</span><span class="s">'b'</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">l</span><span class="p">)]</span>
+        <span class="n">A</span><span class="p">,</span> <span class="n">cache</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">forward</span><span class="p">(</span><span class="n">A_prev</span><span class="p">,</span> <span class="n">Wl</span><span class="p">,</span> <span class="n">bl</span><span class="p">,</span> <span class="n">relu</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">caches</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">cache</span><span class="p">)</span>
+
+    <span class="c"># Output layer computations</span>
+    <span class="n">WL</span> <span class="o">=</span> <span class="n">parameters</span><span class="p">[</span><span class="s">'W'</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">L</span><span class="p">)]</span>
+    <span class="n">bL</span> <span class="o">=</span> <span class="n">parameters</span><span class="p">[</span><span class="s">'b'</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">L</span><span class="p">)]</span>
+    <span class="n">AL</span><span class="p">,</span> <span class="n">cache</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">forward</span><span class="p">(</span><span class="n">A</span><span class="p">,</span> <span class="n">WL</span><span class="p">,</span> <span class="n">bL</span><span class="p">,</span> <span class="n">sigmoid</span><span class="p">)</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">caches</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">cache</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">AL</span><span class="p">,</span> <span class="n">caches</span></code></pre></figure>
+
+<h3 id="activation-functions">Activation Functions</h3>
+<p>Finally, our <code class="highlighter-rouge">forward_propagation()</code> function uses two currently undefined functions: <code class="highlighter-rouge">relu</code> and <code class="highlighter-rouge">sigmoid</code>. We can define these outside of our class or in a separate file. It is very important that we use <code class="highlighter-rouge">numpy</code> to implement these functions so that they can take vectors as inputs. Here are their implementations in Python.</p>
+
+<figure class="highlight"><pre><code class="language-python" data-lang="python"><span class="k">def</span> <span class="nf">sigmoid</span><span class="p">(</span><span class="n">Z</span><span class="p">):</span>
+    <span class="s">"""The sigmoid function."""</span>
+    <span class="k">return</span> <span class="mf">1.0</span> <span class="o">/</span> <span class="p">(</span><span class="mf">1.0</span> <span class="o">+</span> <span class="n">np</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span><span class="o">-</span><span class="n">Z</span><span class="p">))</span>
+
+<span class="k">def</span> <span class="nf">relu</span><span class="p">(</span><span class="n">Z</span><span class="p">):</span>
+    <span class="s">"""The ReLU function."""</span>
+    <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">maximum</span><span class="p">(</span><span class="n">Z</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span></code></pre></figure>
+
+<h3 id="conclusion">Conclusion</h3>
+<p>And, that’s it. Right now we have a neural network with a fully implemented forward-propagation algorithm. In the next post, we will see how to implement <em>back-propagation</em> which allows us to train our neural network. After that, we will combine these functions into a single training function and we will make some minor improvements to our network. Finally, we will put our neural network to the test recognizing handwritten digits. Before moving on, test your understanding with the “After Reading This Post” questions.</p>
+
+<hr />
+
+<h2 id="after-reading-this-post-1">After Reading This Post</h2>
+
+<p><img src="/assets/post02/nn-1.svg" alt="A 3-Layer Neural Network" width="300" />
+<em>Figure 1</em></p>
+
+<p>After reading this post you should be able to answer the following questions:</p>
+<ol>
+  <li>What are the dimensions of <script type="math/tex">W^{[1]}</script>, <script type="math/tex">W^{[2]}</script>, and <script type="math/tex">W^{[3]}</script> for this network?</li>
+  <li>What are the dimensions of <script type="math/tex">b^{[1]}</script>, <script type="math/tex">b^{[2]}</script>, and <script type="math/tex">b^{[3]}</script> for this network?</li>
+  <li>How are <script type="math/tex">z^{[i]}</script> and <script type="math/tex">a^{[i]}</script> different?</li>
+  <li>How are <script type="math/tex">z^{[i]}</script> and <script type="math/tex">a^{[i]}</script> different from <script type="math/tex">Z^{[i]}</script> and <script type="math/tex">A^{[i]}</script>?</li>
+</ol>
+
+<p>Here are the answers</p>
+<ol>
+  <li><script type="math/tex">(5 \times 2)</script>, <script type="math/tex">(5 \times 5)</script>, and <script type="math/tex">(1 \times 5)</script> respectively</li>
+  <li><script type="math/tex">(5 \times 1)</script>, <script type="math/tex">(5 \times 1)</script>, and <script type="math/tex">(1 \times 1)</script> respectively</li>
+  <li><script type="math/tex">z^{[i]}</script> is the result of computing <script type="math/tex">W^{[l]} a^{[l-1]} + b^{[i]}</script>, but has not applied an activation function. <script type="math/tex">a^{[i]}</script> is simply the result of applying an activatio function to <script type="math/tex">z^{[i]}</script>.</li>
+  <li><script type="math/tex">z^{[i]}</script> and <script type="math/tex">a^{[i]}</script> are simply column vectors. We get column vectors when we pass a single example through the network at a time. In practice, we will pass an example matrix containing <script type="math/tex">m</script> examples into the network. As a result, we will have <script type="math/tex">Z^{[i]}</script> and <script type="math/tex">A^{[i]}</script> which are matrices containing <script type="math/tex">m</script> columns.</li>
+</ol>
+
+
+</div>
+
+<div class="pagination">
+  
+  
+    <a href="/2018-10-02/neural-network-basics" class="right arrow">&#8594;</a>
+  
+
+  <a href="#" class="top">Top</a>
+</div>
+
+    </main>
+
+    <footer>
+      <span>
+        Written by <a href="http://JosephBergman.com/">Joseph Bergman</a>.
+        
+            Published on <time datetime="2018-10-14 00:00:00 +0900">October 14, 2018</time>.
+        
+        
+      </span>
+    </footer>
+  </body>
+</html>
