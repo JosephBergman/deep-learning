@@ -22,7 +22,7 @@ An Artificial Neural Network (ANN), or simply "neural network", is a biologicall
 
 Similar to the human brain, a neural network is composed of many smaller and simpler units known as "(artificial) neurons". Individually, each neuron performs a relatively simple computation, but by feeding the output of one neuron into other neurons we can compute progressively more complex functions. Neural networks currently provide the best solutions to a number of problems in image recognition, speech recognition, and natural language processing.
 
-![Example of a Neural Network]({{relative_url}}/assets/post01/nn-example.svg){:width="200px"}
+![Example of a Neural Network](deep-learning/assets/post01/nn-example.svg){:width="200px"}
 _An example of a 5-layer neural network_
 
 More precisely, a neural network is a map from some input space to a range of output values. The input space and output space will vary depending on the problem. For instance, the input could be a photo of a handwritten digit and the output would be some digit between 0 and 9. In a more complex case, the input could be some photo and the output could be a caption for that photo. What makes neural networks so powerful is that they can learn the mapping between the input and output just by looking at examples.
@@ -51,7 +51,7 @@ The function $$g(z)$$ is an example of an "activation function", and will be the
 
 
 ### Example of a Perceptron
-![Example of a Perceptron]({{relative_url}}/assets/post01/perceptron-example.png)
+![Example of a Perceptron](deep-learning/assets/post01/perceptron-example.png)
 _([source](http://neuralnetworksanddeeplearning.com/chap1.html))_
 
 The perceptron above takes two inputs $$x_1$$ and $$x_2$$ which have corresponding weights $$w_1 = -2$$ and $$w_2 = -2$$ as shown. The perceptron has a bias of $$b = 3$$. The value of the output depends on the specific values of the inputs. For example, suppose $$x_1 = 1$$ and $$x_2 = 0$$. Then
@@ -99,7 +99,7 @@ $$
 ### Problems with the Perceptron
 Ultimately we want to devise algorithms which allow our neural network to learn the weights $$w$$ and biases $$b$$ on its own. To be able to learn, we want a small change to the weights or bias to cause a small change in the corresponding output. If we can achieve this, we can gradually update our weights and biases until our outputs are very accurate. Unfortunately, perceptrons don't have this feature.
 
-![Perceptron Activation Function]({{relative_url}}/assets/post01/perceptron-activation.png){:height="200"}
+![Perceptron Activation Function](deep-learning/assets/post01/perceptron-activation.png){:height="200"}
 _Perceptron Activation Function ([Source](https://www.codeproject.com/Articles/1216170/Common-Neural-Network-Activation-Functions))_
 
 Looking at the perceptron activation function, we can see that a small change in the weights or biases can have one of two effects:
@@ -120,7 +120,7 @@ In this section we will look at four different activation functions, $$g(\cdot)$
 
 
 ### The Sigmoid Function
-![Sigmoid Activation Function]({{relative_url}}/assets/post01/sigmoid-activation.png){:height="200"}
+![Sigmoid Activation Function](deep-learning/assets/post01/sigmoid-activation.png){:height="200"}
 _Sigmoid Activation Function ([Source](https://towardsdatascience.com/derivative-of-the-sigmoid-function-536880cf918e))_
 
 The sigmoid function has the following formula
@@ -135,7 +135,7 @@ The sigmoid function is both continuous and differentiable as desired. Another u
 
 
 ### The Hyperbolic Tangent Function
-![Hyperbolic Tangent Activation Function]({{relative_url}}/assets/post01/tanh-activation.jpg){:height="200"}
+![Hyperbolic Tangent Activation Function](deep-learning/assets/post01/tanh-activation.jpg){:height="200"}
 _Hyperbolic Tangent Activation Function ([Source](http://www.20sim.com/webhelp/language_reference_functions_tanh.php))_
 
 The hyperbolic tangent function has the following formula
@@ -152,7 +152,7 @@ In course one of the [Deep Learning Specialization](https://www.coursera.org/spe
 
 
 ### The Rectified Linear Unit (ReLU)
-![ReLU Activation Function]({{relative_url}}/assets/post01/relu-activation.png){:height="200"}
+![ReLU Activation Function](deep-learning/assets/post01/relu-activation.png){:height="200"}
 _ReLU Activation Function ([Source](https://www.learnopencv.com/understanding-activation-functions-in-deep-learning/))_
 
 The ReLU has a very simple formula
@@ -175,7 +175,7 @@ If you look at the sigmoid and hyperbolic tangent functions, you will notice tha
 
 
 ### The Leaky ReLU
-![Leaky ReLU Activation Function]({{relative_url}}/assets/post01/leaky-relu-activation.png){:height="200"}
+![Leaky ReLU Activation Function](deep-learning/assets/post01/leaky-relu-activation.png){:height="200"}
 _Leaky ReLU Activation Function ([Source](https://www.learnopencv.com/understanding-activation-functions-in-deep-learning/))_
 
 The Leaky ReLU also has a simple formula
@@ -200,7 +200,7 @@ The Leaky ReLU function is extremely similar to the ReLU function, but has a non
 ## From Neurons to Neural Networks
 Now that we have established what neurons are, how they compute their output, and what activation functions they can use, we can start to discuss neural networks. In this section, we will look at some neural network terminology, and we will compute the output of a neural network by hand. In the next post, we will establish some more mathematical notation to simplify this process.
 
-![Neural Network Example]({{relative_url}}/assets/post01/nn-terminology-example.svg){:height="250"}
+![Neural Network Example](deep-learning/assets/post01/nn-terminology-example.svg){:height="250"}
 
 
 ### Terminology
@@ -269,7 +269,7 @@ Finally, let's assume that the bias of each neuron is 0, and let's assume that t
 ### Computing the Output
 With all of the values given above we have the following network
 
-![Labeled Neural Network Example]({{relative_url}}/assets/post01/nn-example-labeled.svg){:height="250"}
+![Labeled Neural Network Example](deep-learning/assets/post01/nn-example-labeled.svg){:height="250"}
 
 In order to compute our final output, we first have to compute the output of each hidden neuron. We will essentially pass our input values "forward" through the network until we reach the output layer. The computations are below.
 
