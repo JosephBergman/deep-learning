@@ -13,7 +13,7 @@ In the previous post, we looked at what neural networks are and how they compute
 <hr>
 ## After Reading This Post
 
-![A 3-Layer Neural Network](deep-learning/assets/post02/nn-1.svg){:width="300"}
+![A 3-Layer Neural Network](/deep-learning/assets/post02/nn-1.svg){:width="300"}
 _Figure 1_
 
 After reading this post you should be able to answer the following questions:
@@ -38,7 +38,7 @@ $$z = W x$$
 
 
 ### A Practice Example
-![Our example network](deep-learning/assets/post02/nn-example.svg){:height="175"}
+![Our example network](/deep-learning/assets/post02/nn-example.svg){:height="175"}
 
 Previously, we were computing three separate dot products for the first layer.
 
@@ -118,7 +118,7 @@ This isn't too different from what we did before. The only difference is that $$
 
 
 ### A Practice Example
-![Our example network with biases](deep-learning/assets/post02/nn-example-bias.svg){:height="175"}
+![Our example network with biases](/deep-learning/assets/post02/nn-example-bias.svg){:height="175"}
 _Example with Biases_
 
 Here is a quick example with biases added. The dimensions of $$Wx$$ and $$b$$ have to match.
@@ -199,7 +199,7 @@ $$
 
 
 ### A Practice Example
-![Our example network with biases](deep-learning/assets/post02/nn-example-bias.svg){:height="175"}
+![Our example network with biases](/deep-learning/assets/post02/nn-example-bias.svg){:height="175"}
 _A Full Example_
 
 Using our new notation, let's compute the output of this network.
@@ -546,7 +546,7 @@ And, that's it. Right now we have a neural network with a fully implemented forw
 <hr>
 ## After Reading This Post
 
-![A 3-Layer Neural Network](deep-learning/assets/post02/nn-1.svg){:width="300"}
+![A 3-Layer Neural Network](/deep-learning/assets/post02/nn-1.svg){:width="300"}
 _Figure 1_
 
 After reading this post you should be able to answer the following questions:
