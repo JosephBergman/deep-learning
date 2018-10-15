@@ -3,7 +3,7 @@ layout: post
 title: "Backpropagation"
 published: 2018-10-15
 updated: 2018-10-15
-preview: "Making our neural network learn."
+preview: "Let's implement the algorithm the will enable our networks to learn."
 ---
 
 Today, we will discuss the [backpropagation algorithm](https://en.m.wikipedia.org/wiki/Backpropagation) which will allow our networks to learn. Backpropagation is probably the most  complex part of our neural network, so don't stress too much about the mathematics. Try to understand it conceptually and take note of the important formulas so you can implement it correctly. Finally, try to understand what computations are being performed at each layer, and what order they are being performed in.
@@ -516,4 +516,4 @@ Looking at the above equations, these are the values that we computed during for
 
 <hr>
 ## Coming Up
-Today, we implemented the backpropagation algorithm. There is one problem though -- we never used it to updates the weights and biases! In the next post, we are going to finish implementing our neural network by implementing the update rule and the training algorithm. After that we are going to use our neural network to recognize handwritten digits. 
+Today, we implemented the backpropagation algorithm. There is one problem though -- we never used it to updates the weights and biases! In the next post, we are going to finish implementing our neural network by implementing the update rule and the training algorithm. After that we are going to use our neural network to recognize handwritten digits.
