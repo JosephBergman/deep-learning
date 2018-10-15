@@ -1,4 +1,470 @@
-<?xml version="1.0" encoding="utf-8"?><feed xmlns="http://www.w3.org/2005/Atom" ><generator uri="https://jekyllrb.com/" version="3.8.3">Jekyll</generator><link href="http://localhost:4000/feed.xml" rel="self" type="application/atom+xml" /><link href="http://localhost:4000/" rel="alternate" type="text/html" /><updated>2018-10-14T04:12:58+09:00</updated><id>http://localhost:4000/</id><title type="html">Deep Learning</title><subtitle>Project based blog on deep learning</subtitle><author><name>Joseph Bergman</name><email>Joseph.T.Bergman@gmail.com</email></author><entry><title type="html">Forward Propagation</title><link href="http://localhost:4000/2018-10-14/forward-propagation" rel="alternate" type="text/html" title="Forward Propagation" /><published>2018-10-14T00:00:00+09:00</published><updated>2018-10-14T00:00:00+09:00</updated><id>http://localhost:4000/2018-10-14/forward-propagation</id><content type="html" xml:base="http://localhost:4000/2018-10-14/forward-propagation">&lt;p&gt;In the previous post, we looked at what neural networks are and how they compute their output. In this post, we will devise a more concise notation for computing a neural network’s output, and we will start to write some code for a neural network in Python. This post will require some familiarity with both &lt;a href=&quot;http://www.diveintopython3.net/&quot;&gt;Python&lt;/a&gt; and &lt;a href=&quot;https://www.khanacademy.org/math/linear-algebra&quot;&gt;Linear Algebra&lt;/a&gt;.&lt;/p&gt;
+<?xml version="1.0" encoding="utf-8"?><feed xmlns="http://www.w3.org/2005/Atom" ><generator uri="https://jekyllrb.com/" version="3.8.3">Jekyll</generator><link href="http://localhost:4000/feed.xml" rel="self" type="application/atom+xml" /><link href="http://localhost:4000/" rel="alternate" type="text/html" /><updated>2018-10-15T21:14:29+09:00</updated><id>http://localhost:4000/</id><title type="html">Deep Learning</title><subtitle>Project based blog on deep learning</subtitle><author><name>Joseph Bergman</name><email>Joseph.T.Bergman@gmail.com</email></author><entry><title type="html">Backpropagation</title><link href="http://localhost:4000/2018-10-15/back-propagation" rel="alternate" type="text/html" title="Backpropagation" /><published>2018-10-15T00:00:00+09:00</published><updated>2018-10-15T00:00:00+09:00</updated><id>http://localhost:4000/2018-10-15/back-propagation</id><content type="html" xml:base="http://localhost:4000/2018-10-15/back-propagation">&lt;p&gt;Today, we will discuss the &lt;a href=&quot;https://en.m.wikipedia.org/wiki/Backpropagation&quot;&gt;backpropagation algorithm&lt;/a&gt; which will allow our networks to learn. Backpropagation is probably the most  complex part of our neural network, so don’t stress too much about the mathematics. Try to understand it conceptually and take note of the important formulas so you can implement it correctly. Finally, try to understand what computations are being performed at each layer, and what order they are being performed in.&lt;/p&gt;
+
+&lt;p&gt;For additional information on backpropagation, see these posts.&lt;/p&gt;
+&lt;ul&gt;
+  &lt;li&gt;Video: &lt;a href=&quot;https://www.youtube.com/watch?v=Ilg3gGewQ5U&quot;&gt;What is backpropagation really doing?&lt;/a&gt;&lt;/li&gt;
+  &lt;li&gt;Video: &lt;a href=&quot;https://www.youtube.com/watch?v=tIeHLnjs5U8&quot;&gt;Backpropagation, Calculus&lt;/a&gt;&lt;/li&gt;
+  &lt;li&gt;Article: &lt;a href=&quot;https://medium.com/datathings/neural-networks-and-backpropagation-explained-in-a-simple-way-f540a3611f5e&quot;&gt;Neural Networks and Backpropagation Explained in a Simple Way&lt;/a&gt;&lt;/li&gt;
+  &lt;li&gt;Book Chapter: &lt;a href=&quot;http://neuralnetworksanddeeplearning.com/chap2.html&quot;&gt;How the backpropagation algorithm works&lt;/a&gt;&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;hr /&gt;
+
+&lt;h2 id=&quot;after-reading-this-post&quot;&gt;After Reading This Post&lt;/h2&gt;
+&lt;p&gt;After reading this post, you should be able to answer the following questions.&lt;/p&gt;
+&lt;ol&gt;
+  &lt;li&gt;What is a cost function?&lt;/li&gt;
+  &lt;li&gt;What properties should a cost function have?&lt;/li&gt;
+  &lt;li&gt;What are the backpropagation equations?&lt;/li&gt;
+  &lt;li&gt;What outputs can we cache during forward propagation for use in backpropagation?&lt;/li&gt;
+&lt;/ol&gt;
+
+&lt;p&gt;The answers are provided at the end.&lt;/p&gt;
+
+&lt;hr /&gt;
+
+&lt;h2 id=&quot;what-is-learning&quot;&gt;What is Learning?&lt;/h2&gt;
+&lt;p&gt;We have said that backpropagation is the algorithm for making our neural networks “learn,” but we haven’t said what exactly it means for our neural network to learn. Suppose, for now, that we’re trying to create a neural network that can recognize handwritten digits and we have 1,000 training examples. By training examples, we mean examples where we have the input (the image) and the true output (what digit it is a photo of).&lt;/p&gt;
+
+&lt;h3 id=&quot;classification-error&quot;&gt;Classification Error&lt;/h3&gt;
+&lt;p&gt;One thing we could do is feed of all of these digits into our network and see how many it gets correct. We could then say our neural network is “learning” if the number of digits it gets correct is increasing during each iteration. Or the other way around, we could say our neural network is learning if the number of images it gets wrong is decreasing each iteration (I’m restating it this way because what we will actually do is minimize the error rather than maximize the accuracy).&lt;/p&gt;
+
+&lt;p&gt;This is known as the &lt;em&gt;classification error&lt;/em&gt; of our neural network, and it is a good, human-readable metric, but it is not useful for training our network. There are two issues with it. First, it is not a clear function of the weights and biases in our network. We want to measure our error as a function of our weights and biases so we have some intuition on how to change them. The second issue with this measure is that there is no concept of “closeness,” our output is either 100% right or 100% wrong. But what if our neural network &lt;em&gt;almost&lt;/em&gt; predicted the right output for one of our examples? We want to be able to recognize this and adjust accordingly.&lt;/p&gt;
+
+&lt;h3 id=&quot;cost-functions&quot;&gt;Cost Functions&lt;/h3&gt;
+&lt;p&gt;Instead, we want to find a &lt;em&gt;cost function&lt;/em&gt; with the following form.&lt;/p&gt;
+
+&lt;script type=&quot;math/tex; mode=display&quot;&gt;C(W^{[1]}, b^{[1]}, \dots, W^{[L]}, b^{[L]}) = \frac{1}{m} \sum_{i=1}^{m} E(x^{(i)})&lt;/script&gt;
+
+&lt;p&gt;In other words, we want to find a cost function with a few properties. First, we want it to be a function of our weights an biases. Second, we want it to be an average of the errors for each training example individually. Finally, we want to be punished more for very bad predictions than for predications that are almost right. The greater the value of our cost function, the more wrong we are. If we can minimize the cost function (by altering the weights and biases), then our neural network should make better predictions. Although we aren’t directly measuring the classification error, it should improve as well.&lt;/p&gt;
+
+&lt;h3 id=&quot;minimizing-our-cost-function&quot;&gt;Minimizing our Cost Function&lt;/h3&gt;
+&lt;p&gt;How can we minimize such a function? If you have taken a multivariable calculus class, you may have heard about the &lt;em&gt;gradient&lt;/em&gt; of a function. The gradient of a function is a vector which tells us, “If you move each input (the weights and biases) in the direction I am pointing, you will increase the function output (the cost) mostly rapidly.” Conveniently, it also tells us the following, “If you move each input (the weights and biases) in the opposite direction (multiply by -1) of where I am pointing, you will decrease the function output (the cost) mostly rapidly.” I am now obligated to give you the canonical skier example. If you were a skier on a mountain, the gradient would point in the direction of steepest ascent. By skiing in the opposite direction of the gradient, you will reach the bottom of the mountain most quickly.&lt;/p&gt;
+
+&lt;p&gt;Long story short, we can minimize the cost function by doing the following.&lt;/p&gt;
+&lt;ol&gt;
+  &lt;li&gt;Randomly initialize our weights and biases&lt;/li&gt;
+  &lt;li&gt;Determine how good/bad our predictions are. (Forward Propagation + Cost Function)&lt;/li&gt;
+  &lt;li&gt;Find the gradient of our cost function. (Backpropagation!)&lt;/li&gt;
+  &lt;li&gt;Update our weights and biases by subtracting the gradient.&lt;/li&gt;
+  &lt;li&gt;Repeat steps 2 - 4 until we’re happy.&lt;/li&gt;
+&lt;/ol&gt;
+
+&lt;p&gt;Of course, we wouldn’t have spent all this time talking about cost functions and how to minimize them if we didn’t have any. We will now look at two cost functions. For each one, observe that (1) it is an average of the error over each example, and (2) it is a function of our weights and biases.&lt;/p&gt;
+
+&lt;h3 id=&quot;example-cost-function-mean-squared-error&quot;&gt;Example Cost Function: Mean-Squared Error&lt;/h3&gt;
+&lt;p&gt;The first example is a cost function you have probably seen before. It is sometimes called the sum of squared differences or the mean-squared error (MSE) function. For each example, it measures how far it is from the desired output and adds that to our total cost. If our output perfectly matches the target output, the value will be 0. If our output is very far from the target output, the value will be very large. It has the following form.&lt;/p&gt;
+
+&lt;script type=&quot;math/tex; mode=display&quot;&gt;C = \frac{1}{2m} \sum_{i=1}^{m} ||y^{(i)} - a^{[L](i)}||^2&lt;/script&gt;
+
+&lt;p&gt;Let’s clarify some of the notation real quick&lt;/p&gt;
+&lt;ul&gt;
+  &lt;li&gt;&lt;script type=&quot;math/tex&quot;&gt;m&lt;/script&gt; is the number of examples we fed into our network&lt;/li&gt;
+  &lt;li&gt;&lt;script type=&quot;math/tex&quot;&gt;y^{(i)}&lt;/script&gt; is the desired (target) output of our neural network for example &lt;script type=&quot;math/tex&quot;&gt;i&lt;/script&gt;&lt;/li&gt;
+  &lt;li&gt;&lt;script type=&quot;math/tex&quot;&gt;a^{[L](i)}&lt;/script&gt; is the actual output of or neural network for example &lt;script type=&quot;math/tex&quot;&gt;i&lt;/script&gt;. The &lt;script type=&quot;math/tex&quot;&gt;L&lt;/script&gt; means this is the activations from the final layer, which is the same as our output.&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;It should be clear that this is an average of the errors of each example, but it is a little less clear that this is a function of the weights and biases. After all, there isn’t a single ‘w’ or ‘b’ in that formula. Instead, this is a function of the output of our neural network. Recall, however, that the output of our neural network &lt;em&gt;is&lt;/em&gt; a function of our weights and biases. Therefore, we can use the multivariable chain rule as follows to find the gradient with respect to the weights and biases as desired.&lt;/p&gt;
+
+&lt;script type=&quot;math/tex; mode=display&quot;&gt;% &lt;![CDATA[
+\begin{align}
+\frac{\partial C}{\partial W} &amp; = \frac{\partial C}{\partial A} \frac{\partial A}{\partial W} \\
+\frac{\partial C}{\partial b} &amp; = \frac{\partial C}{\partial A} \frac{\partial A}{\partial b}
+\end{align} %]]&gt;&lt;/script&gt;
+
+&lt;p&gt;If that doesn’t make much sense to you just remember this: Our cost function depends on our weights and biases because it depends on the output of our neural network.&lt;/p&gt;
+
+&lt;h3 id=&quot;example-cost-function-cross-entropy-cost&quot;&gt;Example Cost Function: Cross-Entropy Cost&lt;/h3&gt;
+&lt;p&gt;The cross-entropy cost function is another commonly used cost function. It is less intuitive, and it comes from maximum-likelihood estimation in statistics. The cross-entropy seems to get better results then MSE, so we’re going to use it in our neural network. The formula is as follows.&lt;/p&gt;
+
+&lt;script type=&quot;math/tex; mode=display&quot;&gt;C = \frac{-1}{m} \sum_{i=1}^{m} \big[ y^{(i)} \log(a^{[L](i)}) + (1 - y^{(i)}) \log (1 - a^{[L](i)}) \big]&lt;/script&gt;
+
+&lt;p&gt;Again, it should be clear that this is an average of the errors of each example. Again, it is not quite clear that this is a function of the weights and biases. But just like the MSE function, since it depends on the output of our neural network, it also depends on the weights and biases.&lt;/p&gt;
+
+&lt;h3 id=&quot;summary-and-further-reading&quot;&gt;Summary and Further Reading&lt;/h3&gt;
+&lt;p&gt;That was quite a bit of reading – let’s summarize. The classification error is a good, human-readable way of measuring the performance of our neural network. For training our neural networks, we will try to minimize the Mean-Squared Error, the Cross-Entropy Cost, or some other cost function. We train our neural networks by moving in the opposite direction of the gradient of the cost function. Each cost function has two important components: (1) it is an average of the errors of each example, and (2) it depends on the weights and biases of our network.&lt;/p&gt;
+
+&lt;p&gt;Here are three good articles on cost functions:&lt;/p&gt;
+&lt;ol&gt;
+  &lt;li&gt;&lt;a href=&quot;http://yeephycho.github.io/2017/09/16/Loss-Functions-In-Deep-Learning/&quot;&gt;Loss Functions in Deep Learning&lt;/a&gt;&lt;/li&gt;
+  &lt;li&gt;&lt;a href=&quot;https://jamesmccaffrey.wordpress.com/2013/11/05/why-you-should-use-cross-entropy-error-instead-of-classification-error-or-mean-squared-error-for-neural-network-classifier-training/&quot;&gt;Why You Should Use Cross-Entropy Error&lt;/a&gt;&lt;/li&gt;
+  &lt;li&gt;&lt;a href=&quot;http://neuralnetworksanddeeplearning.com/chap3.html#the_cross-entropy_cost_function&quot;&gt;The Cross-Entropy Cost Function&lt;/a&gt;&lt;/li&gt;
+&lt;/ol&gt;
+
+&lt;hr /&gt;
+
+&lt;h2 id=&quot;backpropagation-layer-by-layer&quot;&gt;Backpropagation: Layer by Layer&lt;/h2&gt;
+&lt;p&gt;Finally we can discuss the backpropagation algorithm. “Forward” Propagation goes forward, so it shouldn’t be too hard to believe that “backpropagation” goes backward – that is, we start at the output layer and work towards the input layer. I am basically just going to give the formulas for each layer of backpropagation, and then I will emphasize making sure it’s clear what goes on at each layer. First, a few things to keep in mind.&lt;/p&gt;
+
+&lt;h3 id=&quot;before-we-begin&quot;&gt;Before We Begin&lt;/h3&gt;
+&lt;p&gt;Keep the original forward propagation formulas in mind. In forward propagation we start with &lt;script type=&quot;math/tex&quot;&gt;A^{[l-1]}&lt;/script&gt;, then compute &lt;script type=&quot;math/tex&quot;&gt;Z^{[l]}&lt;/script&gt;, then finally &lt;script type=&quot;math/tex&quot;&gt;A^{[l]}&lt;/script&gt;. In backpropagation we will start with &lt;script type=&quot;math/tex&quot;&gt;A^{[l]}&lt;/script&gt;, then work towards &lt;script type=&quot;math/tex&quot;&gt;Z^{[l]}&lt;/script&gt;, then finally &lt;script type=&quot;math/tex&quot;&gt;A^{[l-1]}&lt;/script&gt;. Keep these formulas in mind.&lt;/p&gt;
+
+&lt;script type=&quot;math/tex; mode=display&quot;&gt;% &lt;![CDATA[
+\begin{align}
+Z^{[l]} &amp; = W^{[l]} A^{[l-1]} + b^{[l]} \\
+A^{[l]} &amp; = g(Z^{[l]})
+\end{align} %]]&gt;&lt;/script&gt;
+
+&lt;p&gt;Finally, recall that our ultimate goal is to find the gradient of the cost function with respect to the weights and biases. The cost function is a function of &lt;script type=&quot;math/tex&quot;&gt;A^{[L]}&lt;/script&gt; – the output of our final layer. The output of our final layer is a function of all our weights and biases. We can use the chain rule to get the gradient with respect to the weights and biases. It’s an oversimplification, but basically just cancel out the denominator of one derivative with the numerator of the next derivative until you reach the variable you want. You can read more about the chain rule &lt;a href=&quot;https://www.khanacademy.org/math/multivariable-calculus/multivariable-derivatives/differentiating-vector-valued-functions/a/multivariable-chain-rule-simple-version&quot;&gt;here&lt;/a&gt; and &lt;a href=&quot;http://tutorial.math.lamar.edu/Classes/CalcIII/ChainRule.aspx&quot;&gt;here&lt;/a&gt;. See what I mean below.&lt;/p&gt;
+
+&lt;script type=&quot;math/tex; mode=display&quot;&gt;% &lt;![CDATA[
+\begin{align}
+\frac{\partial C}{\partial W} &amp; =
+\frac{\partial C}{\partial A}
+\frac{\partial A}{\partial Z}
+\frac{\partial Z}{\partial W} \\
+
+\frac{\partial C}{\partial b} &amp; =
+\frac{\partial C}{\partial A}
+\frac{\partial A}{\partial Z}
+\frac{\partial Z}{\partial b}
+\end{align} %]]&gt;&lt;/script&gt;
+
+&lt;h3 id=&quot;step-1-derivative-of-cost-function&quot;&gt;Step 1: Derivative of Cost Function&lt;/h3&gt;
+&lt;p&gt;First, we take the derivative of the cost function with respect to the output.&lt;/p&gt;
+
+&lt;script type=&quot;math/tex; mode=display&quot;&gt;\frac{\partial C}{\partial A^{[L]}} = \dots&lt;/script&gt;
+
+&lt;p&gt;If we are using mean-squared error, then the derivative is simply&lt;/p&gt;
+
+&lt;script type=&quot;math/tex; mode=display&quot;&gt;\frac{\partial C}{\partial A^{[L]}} = A^{[L]} - Y&lt;/script&gt;
+
+&lt;p&gt;If we are using the cross-entropy cost function, then the derivative is&lt;/p&gt;
+
+&lt;script type=&quot;math/tex; mode=display&quot;&gt;\frac{\partial C}{\partial A^{[L]}} =
+- \bigg( \frac{Y}{A^{[L]}} - \frac{(1 - Y)}{1 - A^{[L]}} \bigg)&lt;/script&gt;
+
+&lt;p&gt;We can write a class to represent our cost function. Put this in &lt;code class=&quot;highlighter-rouge&quot;&gt;cost_function.py&lt;/code&gt;.&lt;/p&gt;
+
+&lt;figure class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-python&quot; data-lang=&quot;python&quot;&gt;&lt;span class=&quot;k&quot;&gt;class&lt;/span&gt; &lt;span class=&quot;nc&quot;&gt;CostFunction&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;():&lt;/span&gt;
+    &lt;span class=&quot;s&quot;&gt;&quot;&quot;&quot;The cost function of our network.&quot;&quot;&quot;&lt;/span&gt;
+
+    &lt;span class=&quot;k&quot;&gt;def&lt;/span&gt; &lt;span class=&quot;nf&quot;&gt;__init__&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;bp&quot;&gt;self&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;name&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;):&lt;/span&gt;
+        &lt;span class=&quot;s&quot;&gt;&quot;&quot;&quot;Initialize which function to use based on name.
+
+        Arguments:
+            name (str): The name of the funciton to use. Use &quot;MSE&quot; or &quot;CE&quot;.
+        &quot;&quot;&quot;&lt;/span&gt;
+        &lt;span class=&quot;k&quot;&gt;if&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;name&lt;/span&gt; &lt;span class=&quot;ow&quot;&gt;not&lt;/span&gt; &lt;span class=&quot;ow&quot;&gt;in&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;MSE&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;&quot;CE&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;):&lt;/span&gt;
+            &lt;span class=&quot;k&quot;&gt;raise&lt;/span&gt; &lt;span class=&quot;nb&quot;&gt;ValueError&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;Name must be MSE or CE&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+        &lt;span class=&quot;bp&quot;&gt;self&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;name&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;name&lt;/span&gt;
+
+
+    &lt;span class=&quot;k&quot;&gt;def&lt;/span&gt; &lt;span class=&quot;nf&quot;&gt;compute_cost&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;bp&quot;&gt;self&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;Y&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;AL&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;):&lt;/span&gt;
+        &lt;span class=&quot;s&quot;&gt;&quot;&quot;&quot;Returns the cost for the given target and output values.
+
+        Arguments:
+            Y: The target values for the given examples.
+            AL: The output values from the network.
+        &quot;&quot;&quot;&lt;/span&gt;
+        &lt;span class=&quot;k&quot;&gt;if&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;name&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;==&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;&quot;MSE&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt;
+            &lt;span class=&quot;k&quot;&gt;return&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;compute_cost_MSE&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;Y&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;AL&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+        &lt;span class=&quot;k&quot;&gt;if&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;name&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;==&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;&quot;CE&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt;
+            &lt;span class=&quot;k&quot;&gt;return&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;compute_cost_CE&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;Y&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;AL&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+
+
+    &lt;span class=&quot;k&quot;&gt;def&lt;/span&gt; &lt;span class=&quot;nf&quot;&gt;compute_derivative&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;bp&quot;&gt;self&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;Y&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;AL&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;):&lt;/span&gt;
+        &lt;span class=&quot;s&quot;&gt;&quot;&quot;&quot;Returns the derivative of the cost w.r.t. the ouputs.
+
+        Arguments:
+            Y: The target values for the given examples.
+            AL: The output values from the network.
+        &quot;&quot;&quot;&lt;/span&gt;
+        &lt;span class=&quot;k&quot;&gt;if&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;name&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;==&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;&quot;MSE&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt;
+            &lt;span class=&quot;k&quot;&gt;return&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;compute_derivative_MSE&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;Y&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;AL&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+        &lt;span class=&quot;k&quot;&gt;if&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;name&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;==&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;&quot;CE&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt;
+            &lt;span class=&quot;k&quot;&gt;return&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;compute_derivative_CE&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;Y&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;AL&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+
+
+
+&lt;span class=&quot;c&quot;&gt;# --------------------------------------------------&lt;/span&gt;
+&lt;span class=&quot;c&quot;&gt;# Mean Squared Error&lt;/span&gt;
+&lt;span class=&quot;c&quot;&gt;# --------------------------------------------------&lt;/span&gt;
+
+&lt;span class=&quot;k&quot;&gt;def&lt;/span&gt; &lt;span class=&quot;nf&quot;&gt;compute_cost_MSE&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;Y&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;AL&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;):&lt;/span&gt;
+    &lt;span class=&quot;s&quot;&gt;&quot;&quot;&quot;Computes the cost using the MSE cost function.&quot;&quot;&quot;&lt;/span&gt;
+    &lt;span class=&quot;n&quot;&gt;m&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;Y&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;shape&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;[&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;1&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;]&lt;/span&gt;
+    &lt;span class=&quot;n&quot;&gt;cost&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;1&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;/&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;2&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;*&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;m&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;))&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;*&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;np&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;nb&quot;&gt;sum&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;np&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;square&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;Y&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;-&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;AL&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;))&lt;/span&gt;
+    &lt;span class=&quot;k&quot;&gt;return&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;np&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;squeeze&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;cost&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+
+&lt;span class=&quot;k&quot;&gt;def&lt;/span&gt; &lt;span class=&quot;nf&quot;&gt;compute_derivative_MSE&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;Y&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;AL&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;):&lt;/span&gt;
+    &lt;span class=&quot;s&quot;&gt;&quot;&quot;&quot;Computes the derivative of the cost w.r.t output using MSE.&quot;&quot;&quot;&lt;/span&gt;
+    &lt;span class=&quot;k&quot;&gt;return&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;AL&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;-&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;Y&lt;/span&gt;
+
+
+&lt;span class=&quot;c&quot;&gt;# --------------------------------------------------&lt;/span&gt;
+&lt;span class=&quot;c&quot;&gt;# Cross Entropy&lt;/span&gt;
+&lt;span class=&quot;c&quot;&gt;# --------------------------------------------------&lt;/span&gt;
+
+&lt;span class=&quot;k&quot;&gt;def&lt;/span&gt; &lt;span class=&quot;nf&quot;&gt;compute_cost_CE&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;Y&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;AL&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;):&lt;/span&gt;
+    &lt;span class=&quot;s&quot;&gt;&quot;&quot;&quot;Computes the cost using the CE cost function.&quot;&quot;&quot;&lt;/span&gt;
+    &lt;span class=&quot;n&quot;&gt;m&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;Y&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;shape&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;[&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;1&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;]&lt;/span&gt;
+    &lt;span class=&quot;n&quot;&gt;cost&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;-&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;1&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;/&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;m&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;*&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;np&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;nb&quot;&gt;sum&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;np&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;multiply&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;np&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;log&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;AL&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;+&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;eps&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;),&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;Y&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;+&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;np&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;multiply&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;np&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;log&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;((&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;1&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;-&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;AL&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;+&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;eps&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;),(&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;1&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;-&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;Y&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)))&lt;/span&gt;
+    &lt;span class=&quot;k&quot;&gt;return&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;np&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;squeeze&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;cost&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+
+&lt;span class=&quot;k&quot;&gt;def&lt;/span&gt; &lt;span class=&quot;nf&quot;&gt;compute_derivative_CE&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;Y&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;AL&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;):&lt;/span&gt;
+    &lt;span class=&quot;s&quot;&gt;&quot;&quot;&quot;Computes the derivative of the cost w.r.t output using CE.&quot;&quot;&quot;&lt;/span&gt;
+    &lt;span class=&quot;k&quot;&gt;return&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;-&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;np&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;divide&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;Y&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;AL&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;-&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;np&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;divide&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;1&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;-&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;Y&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;mi&quot;&gt;1&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;-&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;AL&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;))&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/figure&gt;
+
+&lt;p&gt;Then, we can start working on a backpropagation method in &lt;code class=&quot;highlighter-rouge&quot;&gt;network.py&lt;/code&gt;.&lt;/p&gt;
+
+&lt;figure class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-python&quot; data-lang=&quot;python&quot;&gt;&lt;span class=&quot;k&quot;&gt;def&lt;/span&gt; &lt;span class=&quot;nf&quot;&gt;backpropagation&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;bp&quot;&gt;self&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;AL&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;Y&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;caches&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;):&lt;/span&gt;
+    &lt;span class=&quot;s&quot;&gt;&quot;&quot;&quot;Perform backpropagation.
+
+    Arguments:
+        AL: The output of our final layer.
+        Y: The target outputs of our network.
+        caches: The caches output during forward propagation.
+
+    Returns:
+        gradients: A dictionary with the gradients
+    &quot;&quot;&quot;&lt;/span&gt;
+    &lt;span class=&quot;c&quot;&gt;# Initialize some variables and the gradients dictionary&lt;/span&gt;
+    &lt;span class=&quot;n&quot;&gt;gradients&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{}&lt;/span&gt;
+    &lt;span class=&quot;n&quot;&gt;L&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;bp&quot;&gt;self&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;num_layers&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;-&lt;/span&gt; &lt;span class=&quot;mi&quot;&gt;1&lt;/span&gt;
+    &lt;span class=&quot;n&quot;&gt;m&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;AL&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;shape&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;[&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;1&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;]&lt;/span&gt;
+    &lt;span class=&quot;n&quot;&gt;Y&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;Y&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;reshape&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;AL&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;shape&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+
+    &lt;span class=&quot;c&quot;&gt;# Step one: Compute the derivative of the cost function.&lt;/span&gt;
+    &lt;span class=&quot;n&quot;&gt;dAL&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;bp&quot;&gt;self&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;cost_function&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;compute_derivative&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;AL&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;Y&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/figure&gt;
+
+&lt;h2 id=&quot;step-2-derivatives-with-respect-to-zl&quot;&gt;Step 2: Derivatives with Respect to &lt;script type=&quot;math/tex&quot;&gt;Z^{[l]}&lt;/script&gt;&lt;/h2&gt;
+&lt;p&gt;As mentioned previously, in forward propagation we go from &lt;script type=&quot;math/tex&quot;&gt;A^{[l-1]}&lt;/script&gt;, to &lt;script type=&quot;math/tex&quot;&gt;Z^{[l]}&lt;/script&gt;, to &lt;script type=&quot;math/tex&quot;&gt;A^{[l]}&lt;/script&gt;, but in backpropagation we go from &lt;script type=&quot;math/tex&quot;&gt;A^{[l]}&lt;/script&gt;, to &lt;script type=&quot;math/tex&quot;&gt;Z^{[l]}&lt;/script&gt;, to &lt;script type=&quot;math/tex&quot;&gt;A^{[l-1]}&lt;/script&gt;. We just computed the derivative with respect to &lt;script type=&quot;math/tex&quot;&gt;A^{[L]}&lt;/script&gt; which we are calling &lt;code class=&quot;highlighter-rouge&quot;&gt;dAL&lt;/code&gt;, so now we will compute the derivative with respect to &lt;script type=&quot;math/tex&quot;&gt;Z^{[L]}&lt;/script&gt;.&lt;/p&gt;
+
+&lt;p&gt;Recall the formula&lt;/p&gt;
+
+&lt;script type=&quot;math/tex; mode=display&quot;&gt;A^{[l]} = g(Z^{[l]})&lt;/script&gt;
+
+&lt;p&gt;Then the derivative is simply&lt;/p&gt;
+
+&lt;script type=&quot;math/tex; mode=display&quot;&gt;\frac{dA^{[l]}}{dZ^{[l]}} = g'(Z^{[l]})&lt;/script&gt;
+
+&lt;p&gt;And from the chain rule mentioned previously&lt;/p&gt;
+
+&lt;script type=&quot;math/tex; mode=display&quot;&gt;\frac{\partial C}{\partial Z} =
+\frac{\partial C}{\partial A}
+\frac{\partial A}{\partial Z}&lt;/script&gt;
+
+&lt;p&gt;This gives us our final formula for this step&lt;/p&gt;
+
+&lt;script type=&quot;math/tex; mode=display&quot;&gt;\frac{\partial C}{\partial Z} = dZ^{[l]} =
+dA^{[l]} * g'(Z^{[l]})&lt;/script&gt;
+
+&lt;h3 id=&quot;step-3-derivatives-with-respect-to-wl&quot;&gt;Step 3: Derivatives with Respect to &lt;script type=&quot;math/tex&quot;&gt;W^{[l]}&lt;/script&gt;&lt;/h3&gt;
+&lt;p&gt;The moment we’ve been waiting for – the derivative with respect to our weights!&lt;/p&gt;
+
+&lt;p&gt;Recall the formula for &lt;script type=&quot;math/tex&quot;&gt;Z^{[l]}&lt;/script&gt; is as follows&lt;/p&gt;
+
+&lt;script type=&quot;math/tex; mode=display&quot;&gt;Z^{[l]} = W^{[l]} A^{[l-1]} + b^{[l]}&lt;/script&gt;
+
+&lt;p&gt;Then the derivative is as follows (it’s a regular derivative with a transpose… &lt;a href=&quot;https://math.stackexchange.com/questions/2044191/given-the-matrix-a-and-vector-x-what-is-the-partial-derivative-of-ax-with-respe&quot;&gt;why?&lt;/a&gt;)&lt;/p&gt;
+
+&lt;script type=&quot;math/tex; mode=display&quot;&gt;\frac{dZ^{[l]}}{dW^{[l]}} = A^{[l-1]T}&lt;/script&gt;
+
+&lt;p&gt;Then referring back to our chain rule&lt;/p&gt;
+
+&lt;script type=&quot;math/tex; mode=display&quot;&gt;\frac{\partial C}{\partial W} =
+\frac{\partial C}{\partial A}
+\frac{\partial A}{\partial Z}
+\frac{\partial Z}{\partial W}&lt;/script&gt;
+
+&lt;p&gt;Since we’ve already computed the derivative with respect to &lt;script type=&quot;math/tex&quot;&gt;Z^{[l]}&lt;/script&gt;&lt;/p&gt;
+
+&lt;script type=&quot;math/tex; mode=display&quot;&gt;\frac{\partial C}{\partial W} =
+\frac{\partial C}{\partial Z}
+\frac{\partial Z}{\partial W}&lt;/script&gt;
+
+&lt;p&gt;Which gives us the final formula for this step&lt;/p&gt;
+
+&lt;script type=&quot;math/tex; mode=display&quot;&gt;\frac{\partial C}{\partial W} = dW^{[l]} =
+\frac{1}{m} dZ^{[l]} A^{[l-1]T}&lt;/script&gt;
+
+&lt;h3 id=&quot;step-4-derivative-with-respect-to-bl&quot;&gt;Step 4: Derivative with Respect to &lt;script type=&quot;math/tex&quot;&gt;b^{[l]}&lt;/script&gt;&lt;/h3&gt;
+&lt;p&gt;The other moment we’ve been waiting for – the derivative with respect to our bias!&lt;/p&gt;
+
+&lt;p&gt;Recall the formula for &lt;script type=&quot;math/tex&quot;&gt;Z^{[l]}&lt;/script&gt; is as follows&lt;/p&gt;
+
+&lt;script type=&quot;math/tex; mode=display&quot;&gt;Z^{[l]} = W^{[l]} A^{[l-1]} + b^{[l]}&lt;/script&gt;
+
+&lt;p&gt;Then the derivative is as follows (it’s a regular derivative this time)&lt;/p&gt;
+
+&lt;script type=&quot;math/tex; mode=display&quot;&gt;\frac{dZ^{[l]}}{db^{[l]}} = 1&lt;/script&gt;
+
+&lt;p&gt;Then referring back to our chain rule&lt;/p&gt;
+
+&lt;script type=&quot;math/tex; mode=display&quot;&gt;\frac{\partial C}{\partial b} =
+\frac{\partial C}{\partial A}
+\frac{\partial A}{\partial Z}
+\frac{\partial Z}{\partial b}&lt;/script&gt;
+
+&lt;p&gt;Since we’ve already computed the derivative with respect to &lt;script type=&quot;math/tex&quot;&gt;Z^{[l]}&lt;/script&gt;&lt;/p&gt;
+
+&lt;script type=&quot;math/tex; mode=display&quot;&gt;\frac{\partial C}{\partial b} =
+\frac{\partial C}{\partial Z}
+\frac{\partial Z}{\partial b}&lt;/script&gt;
+
+&lt;p&gt;Which gives us the final formula for this step&lt;/p&gt;
+
+&lt;script type=&quot;math/tex; mode=display&quot;&gt;\frac{\partial C}{\partial b} = db^{[l]} =
+\frac{1}{m} dZ^{[l]}&lt;/script&gt;
+
+&lt;h3 id=&quot;step-5-on-to-the-next-layer&quot;&gt;Step 5: On to the Next Layer!&lt;/h3&gt;
+&lt;p&gt;Now that we have found the derivative with respect to our weights and our bias, our network can start to learn. However, we don’t want to stop at just one layer, we need the entire network to learn. To reiterate one last time, in forward propagation we go from &lt;script type=&quot;math/tex&quot;&gt;A^{[l-1]}&lt;/script&gt;, to &lt;script type=&quot;math/tex&quot;&gt;Z^{[l]}&lt;/script&gt;, to &lt;script type=&quot;math/tex&quot;&gt;A^{[l]}&lt;/script&gt;, but in backpropagation we go from &lt;script type=&quot;math/tex&quot;&gt;A^{[l]}&lt;/script&gt;, to &lt;script type=&quot;math/tex&quot;&gt;Z^{[l]}&lt;/script&gt;, to &lt;script type=&quot;math/tex&quot;&gt;A^{[l-1]}&lt;/script&gt;. This means we now need to find the derivative with respect to &lt;script type=&quot;math/tex&quot;&gt;A^{[l-1]}&lt;/script&gt;. Then, we repeat steps 2 through 5 until we reach the input layer.&lt;/p&gt;
+
+&lt;p&gt;Recall the formula for &lt;script type=&quot;math/tex&quot;&gt;Z^{[l]}&lt;/script&gt; is as follows&lt;/p&gt;
+
+&lt;script type=&quot;math/tex; mode=display&quot;&gt;Z^{[l]} = W^{[l]} A^{[l-1]} + b^{[l]}&lt;/script&gt;
+
+&lt;p&gt;Then the derivative is as follows (it’s &lt;em&gt;almost&lt;/em&gt; a regular derivative)&lt;/p&gt;
+
+&lt;script type=&quot;math/tex; mode=display&quot;&gt;\frac{dZ^{[l]}}{dA^{[l-1]}} = W^{[l]T}&lt;/script&gt;
+
+&lt;p&gt;Then referring back to our chain rule&lt;/p&gt;
+
+&lt;script type=&quot;math/tex; mode=display&quot;&gt;\frac{\partial C}{\partial A^{[l-1]}} =
+\frac{\partial C}{\partial A}
+\frac{\partial A}{\partial Z}
+\frac{\partial Z}{\partial A^{[l-1]}}&lt;/script&gt;
+
+&lt;p&gt;Since we’ve already computed the derivative with respect to &lt;script type=&quot;math/tex&quot;&gt;Z^{[l]}&lt;/script&gt;&lt;/p&gt;
+
+&lt;script type=&quot;math/tex; mode=display&quot;&gt;\frac{\partial C}{\partial A^{[l-1]}} =
+\frac{\partial C}{\partial Z}
+\frac{\partial Z}{\partial A^{[l-1]}}&lt;/script&gt;
+
+&lt;p&gt;Which gives us the final formula for backpropagation&lt;/p&gt;
+
+&lt;script type=&quot;math/tex; mode=display&quot;&gt;\frac{\partial C}{\partial A^{[l-1]}} = dA^{[l-1]} =
+W^{[l]T} dZ^{[l]}&lt;/script&gt;
+
+&lt;hr /&gt;
+
+&lt;h2 id=&quot;finishing-our-backpropagation-implementation&quot;&gt;Finishing our Backpropagation Implementation&lt;/h2&gt;
+&lt;p&gt;Here is the completed implementation of backpropagation for &lt;code class=&quot;highlighter-rouge&quot;&gt;network.py&lt;/code&gt;&lt;/p&gt;
+
+&lt;figure class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-python&quot; data-lang=&quot;python&quot;&gt;&lt;span class=&quot;k&quot;&gt;def&lt;/span&gt; &lt;span class=&quot;nf&quot;&gt;backpropagation&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;bp&quot;&gt;self&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;AL&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;Y&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;caches&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;):&lt;/span&gt;
+    &lt;span class=&quot;s&quot;&gt;&quot;&quot;&quot;Perform backpropagation.
+
+    Arguments:
+        AL: The output of our final layer.
+        Y: The target outputs of our network.
+        caches: The caches output during forward propagation.
+
+    Returns:
+        gradients: A dictionary with the gradients
+    &quot;&quot;&quot;&lt;/span&gt;
+    &lt;span class=&quot;c&quot;&gt;# Initialize some variables and the gradients dictionary&lt;/span&gt;
+    &lt;span class=&quot;n&quot;&gt;gradients&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{}&lt;/span&gt;
+    &lt;span class=&quot;n&quot;&gt;L&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;bp&quot;&gt;self&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;num_layers&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;-&lt;/span&gt; &lt;span class=&quot;mi&quot;&gt;1&lt;/span&gt;
+    &lt;span class=&quot;n&quot;&gt;m&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;AL&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;shape&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;[&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;1&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;]&lt;/span&gt;
+    &lt;span class=&quot;n&quot;&gt;Y&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;Y&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;reshape&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;AL&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;shape&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+
+    &lt;span class=&quot;c&quot;&gt;# Step one: Compute the derivative of the cost function.&lt;/span&gt;
+    &lt;span class=&quot;n&quot;&gt;dAL&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;bp&quot;&gt;self&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;cost_function&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;compute_derivative&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;AL&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;Y&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+
+    &lt;span class=&quot;c&quot;&gt;# Perform steps two through five for the output layer&lt;/span&gt;
+    &lt;span class=&quot;n&quot;&gt;cache&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;caches&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;[&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;L&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;-&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;1&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;]&lt;/span&gt;
+    &lt;span class=&quot;n&quot;&gt;activation&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;bp&quot;&gt;self&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;activations&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;[&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;L&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;-&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;1&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;]&lt;/span&gt;
+    &lt;span class=&quot;n&quot;&gt;gradients&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;[&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;dA&quot;&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;+&lt;/span&gt; &lt;span class=&quot;nb&quot;&gt;str&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;L&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;-&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;1&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)],&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;gradients&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;[&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;dW&quot;&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;+&lt;/span&gt; &lt;span class=&quot;nb&quot;&gt;str&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;L&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)],&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;gradients&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;[&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;db&quot;&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;+&lt;/span&gt; &lt;span class=&quot;nb&quot;&gt;str&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;L&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)]&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;bp&quot;&gt;self&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;backward_step&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;dAL&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;cache&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;activation&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+
+    &lt;span class=&quot;c&quot;&gt;# All other layers&lt;/span&gt;
+    &lt;span class=&quot;k&quot;&gt;for&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;l&lt;/span&gt; &lt;span class=&quot;ow&quot;&gt;in&lt;/span&gt; &lt;span class=&quot;nb&quot;&gt;reversed&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;nb&quot;&gt;range&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;L&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;-&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;1&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)):&lt;/span&gt;
+        &lt;span class=&quot;n&quot;&gt;cache&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;caches&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;[&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;l&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;]&lt;/span&gt;
+        &lt;span class=&quot;n&quot;&gt;activation&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;bp&quot;&gt;self&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;activations&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;[&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;l&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;-&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;1&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;]&lt;/span&gt;
+        &lt;span class=&quot;n&quot;&gt;dA_prev&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;dW&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;db&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;bp&quot;&gt;self&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;backward&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;gradients&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;[&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;dA&quot;&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;+&lt;/span&gt; &lt;span class=&quot;nb&quot;&gt;str&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;l&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;+&lt;/span&gt; &lt;span class=&quot;mi&quot;&gt;1&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)],&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;current_cache&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;activation&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+        &lt;span class=&quot;n&quot;&gt;gradients&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;[&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;dA&quot;&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;+&lt;/span&gt; &lt;span class=&quot;nb&quot;&gt;str&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;l&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)]&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;dA_prev&lt;/span&gt;
+        &lt;span class=&quot;n&quot;&gt;gradients&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;[&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;dW&quot;&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;+&lt;/span&gt; &lt;span class=&quot;nb&quot;&gt;str&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;l&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;+&lt;/span&gt; &lt;span class=&quot;mi&quot;&gt;1&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)]&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;dW&lt;/span&gt;
+        &lt;span class=&quot;n&quot;&gt;gradients&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;[&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;db&quot;&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;+&lt;/span&gt; &lt;span class=&quot;nb&quot;&gt;str&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;l&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;+&lt;/span&gt; &lt;span class=&quot;mi&quot;&gt;1&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)]&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;db&lt;/span&gt;
+
+    &lt;span class=&quot;k&quot;&gt;return&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;gradients&lt;/span&gt;
+
+
+&lt;span class=&quot;k&quot;&gt;def&lt;/span&gt; &lt;span class=&quot;nf&quot;&gt;backward_step&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;bp&quot;&gt;self&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;dA&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;cache&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;activation&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;):&lt;/span&gt;
+    &lt;span class=&quot;s&quot;&gt;&quot;&quot;&quot;Perform backpropagation for a single layer.
+
+    Arguments:
+        dA: Gradient for the current layer l
+        cache: A tuple (W, A_prev, b, Z, A)
+        activation: The activation function for the current layer.
+
+    Returns:
+        dA_prev: Gradient with respect to the previous activations
+        dW: The gradient of the cost with respect to W
+        db: Gradient of the cost with respect to b
+    &quot;&quot;&quot;&lt;/span&gt;
+    &lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;W&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;A_prev&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;b&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;Z&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;A&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;cache&lt;/span&gt;
+    &lt;span class=&quot;n&quot;&gt;m&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;A_prev&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;shape&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;[&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;1&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;]&lt;/span&gt;
+    &lt;span class=&quot;n&quot;&gt;dZ&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;bp&quot;&gt;None&lt;/span&gt;
+
+    &lt;span class=&quot;c&quot;&gt;# Compute dZ&lt;/span&gt;
+    &lt;span class=&quot;n&quot;&gt;dZ&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;dA&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;*&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;activation&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;derivative&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;Z&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+
+    &lt;span class=&quot;c&quot;&gt;# Compute dA_prev, dW, and db&lt;/span&gt;
+    &lt;span class=&quot;n&quot;&gt;dW&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;1&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;/&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;m&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;*&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;np&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;dot&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;dZ&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;A_prev&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;T&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+    &lt;span class=&quot;n&quot;&gt;db&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;1&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;/&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;m&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;*&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;np&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;nb&quot;&gt;sum&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;dZ&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;axis&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;1&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;keepdims&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;bp&quot;&gt;True&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+    &lt;span class=&quot;n&quot;&gt;dA_prev&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;np&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;dot&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;W&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;T&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;dZ&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+
+    &lt;span class=&quot;k&quot;&gt;return&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;dA_prev&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;dW&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;db&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/figure&gt;
+
+&lt;hr /&gt;
+
+&lt;h2 id=&quot;after-reading-this-post-1&quot;&gt;After Reading This Post&lt;/h2&gt;
+&lt;p&gt;After reading this post, you should be able to answer the following questions.&lt;/p&gt;
+&lt;ol&gt;
+  &lt;li&gt;What is a cost function?&lt;/li&gt;
+  &lt;li&gt;What properties should a cost function have?&lt;/li&gt;
+  &lt;li&gt;What are the backpropagation equations?&lt;/li&gt;
+  &lt;li&gt;What outputs can we cache during forward propagation for use in backpropagation?&lt;/li&gt;
+&lt;/ol&gt;
+
+&lt;h3 id=&quot;what-is-a-cost-function&quot;&gt;What is a cost function?&lt;/h3&gt;
+&lt;p&gt;A cost function measures how “right” or “wrong” our network was on the training set. A larger value means our network was really wrong, and a smaller value means our network. Our goal is to minimize the cost function – and that’s what we mean when we say our network is “learning.”&lt;/p&gt;
+
+&lt;h3 id=&quot;what-properties-should-a-cost-function-have&quot;&gt;What properties should a cost function have?&lt;/h3&gt;
+&lt;p&gt;A cost function should have these two properties&lt;/p&gt;
+&lt;ol&gt;
+  &lt;li&gt;It should be an average of the errors on each individual example&lt;/li&gt;
+  &lt;li&gt;It should be a function of the weights and biases in our network&lt;/li&gt;
+&lt;/ol&gt;
+
+&lt;h3 id=&quot;what-are-the-backpropagation-equations&quot;&gt;What are the backpropagation equations?&lt;/h3&gt;
+&lt;p&gt;The first equation is derivative of the cost function with respect to our outputs. This will change depending on what cost function we use. For cross-entropy cost we will use the following formula&lt;/p&gt;
+
+&lt;script type=&quot;math/tex; mode=display&quot;&gt;\frac{\partial C}{\partial A^{[L]}} =
+- \bigg( \frac{Y}{A^{[L]}} - \frac{(1 - Y)}{1 - A^{[L]}} \bigg)&lt;/script&gt;
+
+&lt;p&gt;The second equation is the derivative with respect to &lt;script type=&quot;math/tex&quot;&gt;Z^{[l]}&lt;/script&gt;&lt;/p&gt;
+
+&lt;script type=&quot;math/tex; mode=display&quot;&gt;\frac{\partial C}{\partial Z} = dZ^{[l]} =
+dA^{[l]} * g'(Z^{[l]})&lt;/script&gt;
+
+&lt;p&gt;The third equation is the derivative with respect to &lt;script type=&quot;math/tex&quot;&gt;W^{[l]}&lt;/script&gt;&lt;/p&gt;
+
+&lt;script type=&quot;math/tex; mode=display&quot;&gt;\frac{\partial C}{\partial W} = dW^{[l]} =
+\frac{1}{m} dZ^{[l]} A^{[l-1]T}&lt;/script&gt;
+
+&lt;p&gt;The fourth equation is the derivative with respect to &lt;script type=&quot;math/tex&quot;&gt;b^{[l]}&lt;/script&gt;&lt;/p&gt;
+
+&lt;script type=&quot;math/tex; mode=display&quot;&gt;\frac{\partial C}{\partial b} = db^{[l]} =
+\frac{1}{m} dZ^{[l]}&lt;/script&gt;
+
+&lt;p&gt;The fifth equation is the derivative with respect to &lt;script type=&quot;math/tex&quot;&gt;A^{[l-1]}&lt;/script&gt;&lt;/p&gt;
+
+&lt;script type=&quot;math/tex; mode=display&quot;&gt;\frac{\partial C}{\partial A^{[l-1]}} = dA^{[l-1]} =
+W^{[l]T} dZ^{[l]}&lt;/script&gt;
+
+&lt;h3 id=&quot;what-outputs-can-we-cache-during-forward-propagation&quot;&gt;What outputs can we cache during forward propagation?&lt;/h3&gt;
+&lt;p&gt;Looking at the above equations, these are the values that we computed during forward propagation and reused in backpropagation. During training, we should cache these values for use in the backpropagation phase.&lt;/p&gt;
+&lt;ul&gt;
+  &lt;li&gt;&lt;script type=&quot;math/tex&quot;&gt;Z^{[l]}&lt;/script&gt;: The pre-activation output of each layer&lt;/li&gt;
+  &lt;li&gt;&lt;script type=&quot;math/tex&quot;&gt;A^{[l]}&lt;/script&gt;: The activations of each layer&lt;/li&gt;
+  &lt;li&gt;&lt;script type=&quot;math/tex&quot;&gt;W^{[l]}&lt;/script&gt;: The weights of our network&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;hr /&gt;
+
+&lt;h2 id=&quot;coming-up&quot;&gt;Coming Up&lt;/h2&gt;
+&lt;p&gt;Today, we implemented the backpropagation algorithm. There is one problem though – we never used it to updates the weights and biases! In the next post, we are going to finish implementing our neural network by implementing the update rule and the training algorithm. After that we are going to use our neural network to recognize handwritten digits.&lt;/p&gt;</content><author><name>Joseph Bergman</name><email>Joseph.T.Bergman@gmail.com</email></author><summary type="html">Today, we will discuss the backpropagation algorithm which will allow our networks to learn. Backpropagation is probably the most complex part of our neural network, so don’t stress too much about the mathematics. Try to understand it conceptually and take note of the important formulas so you can implement it correctly. Finally, try to understand what computations are being performed at each layer, and what order they are being performed in.</summary></entry><entry><title type="html">Forward Propagation</title><link href="http://localhost:4000/2018-10-14/forward-propagation" rel="alternate" type="text/html" title="Forward Propagation" /><published>2018-10-14T00:00:00+09:00</published><updated>2018-10-14T00:00:00+09:00</updated><id>http://localhost:4000/2018-10-14/forward-propagation</id><content type="html" xml:base="http://localhost:4000/2018-10-14/forward-propagation">&lt;p&gt;In the previous post, we looked at what neural networks are and how they compute their output. In this post, we will devise a more concise notation for computing a neural network’s output, and we will start to write some code for a neural network in Python. This post will require some familiarity with both &lt;a href=&quot;http://www.diveintopython3.net/&quot;&gt;Python&lt;/a&gt; and &lt;a href=&quot;https://www.khanacademy.org/math/linear-algebra&quot;&gt;Linear Algebra&lt;/a&gt;.&lt;/p&gt;
 
 &lt;hr /&gt;
 

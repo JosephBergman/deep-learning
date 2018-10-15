@@ -1,0 +1,545 @@
+<!DOCTYPE html>
+<html lang="en">
+
+  <head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+
+  <title>
+    
+      Backpropagation &middot; Deep Learning
+    
+  </title>
+
+  <!-- CSS -->
+  <link rel="stylesheet" href="/assets/main.css">
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Libre+Baskerville:400,400i,700">
+
+  <!-- MathJax -->
+  <script type="text/javascript" async src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-MML-AM_CHTML"></script>
+
+  <!-- Favicon -->
+  <!-- <link rel="icon" type="image/png" sizes="32x32" href="/assets/favicon-32x32.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/assets/favicon-16x16.png"> -->
+  <link rel="icon" type="image/x-icon" href="/assets/favicon.ico">
+  <link rel="shortcut icon" type="image/x-icon" href="/assets/favicon.ico">
+  <link rel="apple-touch-icon" sizes="256x256" href="/assets/apple-touch-icon.png">
+
+  <!-- RSS -->
+  <link type="application/atom+xml" rel="alternate" href="http://localhost:4000/feed.xml" title="Deep Learning" />
+</head>
+
+
+  <body>
+    <nav class="nav">
+      <div class="nav-container">
+        <a href="/">
+          <h2 class="nav-title">Deep Learning</h2>
+        </a>
+        <ul>
+          <li><a href="/">Posts</a></li>
+          <li><a href="/about">About</a></li>
+        </ul>
+      </div>
+    </nav>
+
+    <main>
+      <div class="post">
+
+  <h1 class="post-title">Backpropagation</h1>
+  <div class="post-line"></div>
+
+  <p>Today, we will discuss the <a href="https://en.m.wikipedia.org/wiki/Backpropagation">backpropagation algorithm</a> which will allow our networks to learn. Backpropagation is probably the most  complex part of our neural network, so don’t stress too much about the mathematics. Try to understand it conceptually and take note of the important formulas so you can implement it correctly. Finally, try to understand what computations are being performed at each layer, and what order they are being performed in.</p>
+
+<p>For additional information on backpropagation, see these posts.</p>
+<ul>
+  <li>Video: <a href="https://www.youtube.com/watch?v=Ilg3gGewQ5U">What is backpropagation really doing?</a></li>
+  <li>Video: <a href="https://www.youtube.com/watch?v=tIeHLnjs5U8">Backpropagation, Calculus</a></li>
+  <li>Article: <a href="https://medium.com/datathings/neural-networks-and-backpropagation-explained-in-a-simple-way-f540a3611f5e">Neural Networks and Backpropagation Explained in a Simple Way</a></li>
+  <li>Book Chapter: <a href="http://neuralnetworksanddeeplearning.com/chap2.html">How the backpropagation algorithm works</a></li>
+</ul>
+
+<hr />
+
+<h2 id="after-reading-this-post">After Reading This Post</h2>
+<p>After reading this post, you should be able to answer the following questions.</p>
+<ol>
+  <li>What is a cost function?</li>
+  <li>What properties should a cost function have?</li>
+  <li>What are the backpropagation equations?</li>
+  <li>What outputs can we cache during forward propagation for use in backpropagation?</li>
+</ol>
+
+<p>The answers are provided at the end.</p>
+
+<hr />
+
+<h2 id="what-is-learning">What is Learning?</h2>
+<p>We have said that backpropagation is the algorithm for making our neural networks “learn,” but we haven’t said what exactly it means for our neural network to learn. Suppose, for now, that we’re trying to create a neural network that can recognize handwritten digits and we have 1,000 training examples. By training examples, we mean examples where we have the input (the image) and the true output (what digit it is a photo of).</p>
+
+<h3 id="classification-error">Classification Error</h3>
+<p>One thing we could do is feed of all of these digits into our network and see how many it gets correct. We could then say our neural network is “learning” if the number of digits it gets correct is increasing during each iteration. Or the other way around, we could say our neural network is learning if the number of images it gets wrong is decreasing each iteration (I’m restating it this way because what we will actually do is minimize the error rather than maximize the accuracy).</p>
+
+<p>This is known as the <em>classification error</em> of our neural network, and it is a good, human-readable metric, but it is not useful for training our network. There are two issues with it. First, it is not a clear function of the weights and biases in our network. We want to measure our error as a function of our weights and biases so we have some intuition on how to change them. The second issue with this measure is that there is no concept of “closeness,” our output is either 100% right or 100% wrong. But what if our neural network <em>almost</em> predicted the right output for one of our examples? We want to be able to recognize this and adjust accordingly.</p>
+
+<h3 id="cost-functions">Cost Functions</h3>
+<p>Instead, we want to find a <em>cost function</em> with the following form.</p>
+
+<script type="math/tex; mode=display">C(W^{[1]}, b^{[1]}, \dots, W^{[L]}, b^{[L]}) = \frac{1}{m} \sum_{i=1}^{m} E(x^{(i)})</script>
+
+<p>In other words, we want to find a cost function with a few properties. First, we want it to be a function of our weights an biases. Second, we want it to be an average of the errors for each training example individually. Finally, we want to be punished more for very bad predictions than for predications that are almost right. The greater the value of our cost function, the more wrong we are. If we can minimize the cost function (by altering the weights and biases), then our neural network should make better predictions. Although we aren’t directly measuring the classification error, it should improve as well.</p>
+
+<h3 id="minimizing-our-cost-function">Minimizing our Cost Function</h3>
+<p>How can we minimize such a function? If you have taken a multivariable calculus class, you may have heard about the <em>gradient</em> of a function. The gradient of a function is a vector which tells us, “If you move each input (the weights and biases) in the direction I am pointing, you will increase the function output (the cost) mostly rapidly.” Conveniently, it also tells us the following, “If you move each input (the weights and biases) in the opposite direction (multiply by -1) of where I am pointing, you will decrease the function output (the cost) mostly rapidly.” I am now obligated to give you the canonical skier example. If you were a skier on a mountain, the gradient would point in the direction of steepest ascent. By skiing in the opposite direction of the gradient, you will reach the bottom of the mountain most quickly.</p>
+
+<p>Long story short, we can minimize the cost function by doing the following.</p>
+<ol>
+  <li>Randomly initialize our weights and biases</li>
+  <li>Determine how good/bad our predictions are. (Forward Propagation + Cost Function)</li>
+  <li>Find the gradient of our cost function. (Backpropagation!)</li>
+  <li>Update our weights and biases by subtracting the gradient.</li>
+  <li>Repeat steps 2 - 4 until we’re happy.</li>
+</ol>
+
+<p>Of course, we wouldn’t have spent all this time talking about cost functions and how to minimize them if we didn’t have any. We will now look at two cost functions. For each one, observe that (1) it is an average of the error over each example, and (2) it is a function of our weights and biases.</p>
+
+<h3 id="example-cost-function-mean-squared-error">Example Cost Function: Mean-Squared Error</h3>
+<p>The first example is a cost function you have probably seen before. It is sometimes called the sum of squared differences or the mean-squared error (MSE) function. For each example, it measures how far it is from the desired output and adds that to our total cost. If our output perfectly matches the target output, the value will be 0. If our output is very far from the target output, the value will be very large. It has the following form.</p>
+
+<script type="math/tex; mode=display">C = \frac{1}{2m} \sum_{i=1}^{m} ||y^{(i)} - a^{[L](i)}||^2</script>
+
+<p>Let’s clarify some of the notation real quick</p>
+<ul>
+  <li><script type="math/tex">m</script> is the number of examples we fed into our network</li>
+  <li><script type="math/tex">y^{(i)}</script> is the desired (target) output of our neural network for example <script type="math/tex">i</script></li>
+  <li><script type="math/tex">a^{[L](i)}</script> is the actual output of or neural network for example <script type="math/tex">i</script>. The <script type="math/tex">L</script> means this is the activations from the final layer, which is the same as our output.</li>
+</ul>
+
+<p>It should be clear that this is an average of the errors of each example, but it is a little less clear that this is a function of the weights and biases. After all, there isn’t a single ‘w’ or ‘b’ in that formula. Instead, this is a function of the output of our neural network. Recall, however, that the output of our neural network <em>is</em> a function of our weights and biases. Therefore, we can use the multivariable chain rule as follows to find the gradient with respect to the weights and biases as desired.</p>
+
+<script type="math/tex; mode=display">% <![CDATA[
+\begin{align}
+\frac{\partial C}{\partial W} & = \frac{\partial C}{\partial A} \frac{\partial A}{\partial W} \\
+\frac{\partial C}{\partial b} & = \frac{\partial C}{\partial A} \frac{\partial A}{\partial b}
+\end{align} %]]></script>
+
+<p>If that doesn’t make much sense to you just remember this: Our cost function depends on our weights and biases because it depends on the output of our neural network.</p>
+
+<h3 id="example-cost-function-cross-entropy-cost">Example Cost Function: Cross-Entropy Cost</h3>
+<p>The cross-entropy cost function is another commonly used cost function. It is less intuitive, and it comes from maximum-likelihood estimation in statistics. The cross-entropy seems to get better results then MSE, so we’re going to use it in our neural network. The formula is as follows.</p>
+
+<script type="math/tex; mode=display">C = \frac{-1}{m} \sum_{i=1}^{m} \big[ y^{(i)} \log(a^{[L](i)}) + (1 - y^{(i)}) \log (1 - a^{[L](i)}) \big]</script>
+
+<p>Again, it should be clear that this is an average of the errors of each example. Again, it is not quite clear that this is a function of the weights and biases. But just like the MSE function, since it depends on the output of our neural network, it also depends on the weights and biases.</p>
+
+<h3 id="summary-and-further-reading">Summary and Further Reading</h3>
+<p>That was quite a bit of reading – let’s summarize. The classification error is a good, human-readable way of measuring the performance of our neural network. For training our neural networks, we will try to minimize the Mean-Squared Error, the Cross-Entropy Cost, or some other cost function. We train our neural networks by moving in the opposite direction of the gradient of the cost function. Each cost function has two important components: (1) it is an average of the errors of each example, and (2) it depends on the weights and biases of our network.</p>
+
+<p>Here are three good articles on cost functions:</p>
+<ol>
+  <li><a href="http://yeephycho.github.io/2017/09/16/Loss-Functions-In-Deep-Learning/">Loss Functions in Deep Learning</a></li>
+  <li><a href="https://jamesmccaffrey.wordpress.com/2013/11/05/why-you-should-use-cross-entropy-error-instead-of-classification-error-or-mean-squared-error-for-neural-network-classifier-training/">Why You Should Use Cross-Entropy Error</a></li>
+  <li><a href="http://neuralnetworksanddeeplearning.com/chap3.html#the_cross-entropy_cost_function">The Cross-Entropy Cost Function</a></li>
+</ol>
+
+<hr />
+
+<h2 id="backpropagation-layer-by-layer">Backpropagation: Layer by Layer</h2>
+<p>Finally we can discuss the backpropagation algorithm. “Forward” Propagation goes forward, so it shouldn’t be too hard to believe that “backpropagation” goes backward – that is, we start at the output layer and work towards the input layer. I am basically just going to give the formulas for each layer of backpropagation, and then I will emphasize making sure it’s clear what goes on at each layer. First, a few things to keep in mind.</p>
+
+<h3 id="before-we-begin">Before We Begin</h3>
+<p>Keep the original forward propagation formulas in mind. In forward propagation we start with <script type="math/tex">A^{[l-1]}</script>, then compute <script type="math/tex">Z^{[l]}</script>, then finally <script type="math/tex">A^{[l]}</script>. In backpropagation we will start with <script type="math/tex">A^{[l]}</script>, then work towards <script type="math/tex">Z^{[l]}</script>, then finally <script type="math/tex">A^{[l-1]}</script>. Keep these formulas in mind.</p>
+
+<script type="math/tex; mode=display">% <![CDATA[
+\begin{align}
+Z^{[l]} & = W^{[l]} A^{[l-1]} + b^{[l]} \\
+A^{[l]} & = g(Z^{[l]})
+\end{align} %]]></script>
+
+<p>Finally, recall that our ultimate goal is to find the gradient of the cost function with respect to the weights and biases. The cost function is a function of <script type="math/tex">A^{[L]}</script> – the output of our final layer. The output of our final layer is a function of all our weights and biases. We can use the chain rule to get the gradient with respect to the weights and biases. It’s an oversimplification, but basically just cancel out the denominator of one derivative with the numerator of the next derivative until you reach the variable you want. You can read more about the chain rule <a href="https://www.khanacademy.org/math/multivariable-calculus/multivariable-derivatives/differentiating-vector-valued-functions/a/multivariable-chain-rule-simple-version">here</a> and <a href="http://tutorial.math.lamar.edu/Classes/CalcIII/ChainRule.aspx">here</a>. See what I mean below.</p>
+
+<script type="math/tex; mode=display">% <![CDATA[
+\begin{align}
+\frac{\partial C}{\partial W} & =
+\frac{\partial C}{\partial A}
+\frac{\partial A}{\partial Z}
+\frac{\partial Z}{\partial W} \\
+
+\frac{\partial C}{\partial b} & =
+\frac{\partial C}{\partial A}
+\frac{\partial A}{\partial Z}
+\frac{\partial Z}{\partial b}
+\end{align} %]]></script>
+
+<h3 id="step-1-derivative-of-cost-function">Step 1: Derivative of Cost Function</h3>
+<p>First, we take the derivative of the cost function with respect to the output.</p>
+
+<script type="math/tex; mode=display">\frac{\partial C}{\partial A^{[L]}} = \dots</script>
+
+<p>If we are using mean-squared error, then the derivative is simply</p>
+
+<script type="math/tex; mode=display">\frac{\partial C}{\partial A^{[L]}} = A^{[L]} - Y</script>
+
+<p>If we are using the cross-entropy cost function, then the derivative is</p>
+
+<script type="math/tex; mode=display">\frac{\partial C}{\partial A^{[L]}} =
+- \bigg( \frac{Y}{A^{[L]}} - \frac{(1 - Y)}{1 - A^{[L]}} \bigg)</script>
+
+<p>We can write a class to represent our cost function. Put this in <code class="highlighter-rouge">cost_function.py</code>.</p>
+
+<figure class="highlight"><pre><code class="language-python" data-lang="python"><span class="k">class</span> <span class="nc">CostFunction</span><span class="p">():</span>
+    <span class="s">"""The cost function of our network."""</span>
+
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">):</span>
+        <span class="s">"""Initialize which function to use based on name.
+
+        Arguments:
+            name (str): The name of the funciton to use. Use "MSE" or "CE".
+        """</span>
+        <span class="k">if</span> <span class="n">name</span> <span class="ow">not</span> <span class="ow">in</span> <span class="p">(</span><span class="s">"MSE"</span><span class="p">,</span> <span class="s">"CE"</span><span class="p">):</span>
+            <span class="k">raise</span> <span class="nb">ValueError</span><span class="p">(</span><span class="s">"Name must be MSE or CE"</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">name</span> <span class="o">=</span> <span class="n">name</span>
+
+
+    <span class="k">def</span> <span class="nf">compute_cost</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">Y</span><span class="p">,</span> <span class="n">AL</span><span class="p">):</span>
+        <span class="s">"""Returns the cost for the given target and output values.
+
+        Arguments:
+            Y: The target values for the given examples.
+            AL: The output values from the network.
+        """</span>
+        <span class="k">if</span> <span class="n">name</span> <span class="o">==</span> <span class="s">"MSE"</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">compute_cost_MSE</span><span class="p">(</span><span class="n">Y</span><span class="p">,</span> <span class="n">AL</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">name</span> <span class="o">==</span> <span class="s">"CE"</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">compute_cost_CE</span><span class="p">(</span><span class="n">Y</span><span class="p">,</span> <span class="n">AL</span><span class="p">)</span>
+
+
+    <span class="k">def</span> <span class="nf">compute_derivative</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">Y</span><span class="p">,</span> <span class="n">AL</span><span class="p">):</span>
+        <span class="s">"""Returns the derivative of the cost w.r.t. the ouputs.
+
+        Arguments:
+            Y: The target values for the given examples.
+            AL: The output values from the network.
+        """</span>
+        <span class="k">if</span> <span class="n">name</span> <span class="o">==</span> <span class="s">"MSE"</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">compute_derivative_MSE</span><span class="p">(</span><span class="n">Y</span><span class="p">,</span> <span class="n">AL</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">name</span> <span class="o">==</span> <span class="s">"CE"</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">compute_derivative_CE</span><span class="p">(</span><span class="n">Y</span><span class="p">,</span> <span class="n">AL</span><span class="p">)</span>
+
+
+
+<span class="c"># --------------------------------------------------</span>
+<span class="c"># Mean Squared Error</span>
+<span class="c"># --------------------------------------------------</span>
+
+<span class="k">def</span> <span class="nf">compute_cost_MSE</span><span class="p">(</span><span class="n">Y</span><span class="p">,</span> <span class="n">AL</span><span class="p">):</span>
+    <span class="s">"""Computes the cost using the MSE cost function."""</span>
+    <span class="n">m</span> <span class="o">=</span> <span class="n">Y</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+    <span class="n">cost</span> <span class="o">=</span> <span class="p">(</span><span class="mi">1</span><span class="o">/</span><span class="p">(</span><span class="mi">2</span><span class="o">*</span><span class="n">m</span><span class="p">))</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="nb">sum</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">square</span><span class="p">(</span><span class="n">Y</span> <span class="o">-</span> <span class="n">AL</span><span class="p">))</span>
+    <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">squeeze</span><span class="p">(</span><span class="n">cost</span><span class="p">)</span>
+
+<span class="k">def</span> <span class="nf">compute_derivative_MSE</span><span class="p">(</span><span class="n">Y</span><span class="p">,</span> <span class="n">AL</span><span class="p">):</span>
+    <span class="s">"""Computes the derivative of the cost w.r.t output using MSE."""</span>
+    <span class="k">return</span> <span class="n">AL</span> <span class="o">-</span> <span class="n">Y</span>
+
+
+<span class="c"># --------------------------------------------------</span>
+<span class="c"># Cross Entropy</span>
+<span class="c"># --------------------------------------------------</span>
+
+<span class="k">def</span> <span class="nf">compute_cost_CE</span><span class="p">(</span><span class="n">Y</span><span class="p">,</span> <span class="n">AL</span><span class="p">):</span>
+    <span class="s">"""Computes the cost using the CE cost function."""</span>
+    <span class="n">m</span> <span class="o">=</span> <span class="n">Y</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+    <span class="n">cost</span> <span class="o">=</span> <span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="o">/</span><span class="n">m</span><span class="p">)</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="nb">sum</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">multiply</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">log</span><span class="p">(</span><span class="n">AL</span> <span class="o">+</span> <span class="n">eps</span><span class="p">),</span> <span class="n">Y</span><span class="p">)</span> <span class="o">+</span> <span class="n">np</span><span class="o">.</span><span class="n">multiply</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">log</span><span class="p">((</span><span class="mi">1</span><span class="o">-</span><span class="n">AL</span><span class="p">)</span> <span class="o">+</span> <span class="n">eps</span><span class="p">),(</span><span class="mi">1</span><span class="o">-</span><span class="n">Y</span><span class="p">)))</span>
+    <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">squeeze</span><span class="p">(</span><span class="n">cost</span><span class="p">)</span>
+
+<span class="k">def</span> <span class="nf">compute_derivative_CE</span><span class="p">(</span><span class="n">Y</span><span class="p">,</span> <span class="n">AL</span><span class="p">):</span>
+    <span class="s">"""Computes the derivative of the cost w.r.t output using CE."""</span>
+    <span class="k">return</span> <span class="o">-</span> <span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">divide</span><span class="p">(</span><span class="n">Y</span><span class="p">,</span> <span class="n">AL</span><span class="p">)</span> <span class="o">-</span> <span class="n">np</span><span class="o">.</span><span class="n">divide</span><span class="p">(</span><span class="mi">1</span> <span class="o">-</span> <span class="n">Y</span><span class="p">,</span> <span class="mi">1</span> <span class="o">-</span> <span class="n">AL</span><span class="p">))</span></code></pre></figure>
+
+<p>Then, we can start working on a backpropagation method in <code class="highlighter-rouge">network.py</code>.</p>
+
+<figure class="highlight"><pre><code class="language-python" data-lang="python"><span class="k">def</span> <span class="nf">backpropagation</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">AL</span><span class="p">,</span> <span class="n">Y</span><span class="p">,</span> <span class="n">caches</span><span class="p">):</span>
+    <span class="s">"""Perform backpropagation.
+
+    Arguments:
+        AL: The output of our final layer.
+        Y: The target outputs of our network.
+        caches: The caches output during forward propagation.
+
+    Returns:
+        gradients: A dictionary with the gradients
+    """</span>
+    <span class="c"># Initialize some variables and the gradients dictionary</span>
+    <span class="n">gradients</span> <span class="o">=</span> <span class="p">{}</span>
+    <span class="n">L</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">num_layers</span> <span class="o">-</span> <span class="mi">1</span>
+    <span class="n">m</span> <span class="o">=</span> <span class="n">AL</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+    <span class="n">Y</span> <span class="o">=</span> <span class="n">Y</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="n">AL</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span>
+
+    <span class="c"># Step one: Compute the derivative of the cost function.</span>
+    <span class="n">dAL</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">cost_function</span><span class="o">.</span><span class="n">compute_derivative</span><span class="p">(</span><span class="n">AL</span><span class="p">,</span> <span class="n">Y</span><span class="p">)</span></code></pre></figure>
+
+<h2 id="step-2-derivatives-with-respect-to-zl">Step 2: Derivatives with Respect to <script type="math/tex">Z^{[l]}</script></h2>
+<p>As mentioned previously, in forward propagation we go from <script type="math/tex">A^{[l-1]}</script>, to <script type="math/tex">Z^{[l]}</script>, to <script type="math/tex">A^{[l]}</script>, but in backpropagation we go from <script type="math/tex">A^{[l]}</script>, to <script type="math/tex">Z^{[l]}</script>, to <script type="math/tex">A^{[l-1]}</script>. We just computed the derivative with respect to <script type="math/tex">A^{[L]}</script> which we are calling <code class="highlighter-rouge">dAL</code>, so now we will compute the derivative with respect to <script type="math/tex">Z^{[L]}</script>.</p>
+
+<p>Recall the formula</p>
+
+<script type="math/tex; mode=display">A^{[l]} = g(Z^{[l]})</script>
+
+<p>Then the derivative is simply</p>
+
+<script type="math/tex; mode=display">\frac{dA^{[l]}}{dZ^{[l]}} = g'(Z^{[l]})</script>
+
+<p>And from the chain rule mentioned previously</p>
+
+<script type="math/tex; mode=display">\frac{\partial C}{\partial Z} =
+\frac{\partial C}{\partial A}
+\frac{\partial A}{\partial Z}</script>
+
+<p>This gives us our final formula for this step</p>
+
+<script type="math/tex; mode=display">\frac{\partial C}{\partial Z} = dZ^{[l]} =
+dA^{[l]} * g'(Z^{[l]})</script>
+
+<h3 id="step-3-derivatives-with-respect-to-wl">Step 3: Derivatives with Respect to <script type="math/tex">W^{[l]}</script></h3>
+<p>The moment we’ve been waiting for – the derivative with respect to our weights!</p>
+
+<p>Recall the formula for <script type="math/tex">Z^{[l]}</script> is as follows</p>
+
+<script type="math/tex; mode=display">Z^{[l]} = W^{[l]} A^{[l-1]} + b^{[l]}</script>
+
+<p>Then the derivative is as follows (it’s a regular derivative with a transpose… <a href="https://math.stackexchange.com/questions/2044191/given-the-matrix-a-and-vector-x-what-is-the-partial-derivative-of-ax-with-respe">why?</a>)</p>
+
+<script type="math/tex; mode=display">\frac{dZ^{[l]}}{dW^{[l]}} = A^{[l-1]T}</script>
+
+<p>Then referring back to our chain rule</p>
+
+<script type="math/tex; mode=display">\frac{\partial C}{\partial W} =
+\frac{\partial C}{\partial A}
+\frac{\partial A}{\partial Z}
+\frac{\partial Z}{\partial W}</script>
+
+<p>Since we’ve already computed the derivative with respect to <script type="math/tex">Z^{[l]}</script></p>
+
+<script type="math/tex; mode=display">\frac{\partial C}{\partial W} =
+\frac{\partial C}{\partial Z}
+\frac{\partial Z}{\partial W}</script>
+
+<p>Which gives us the final formula for this step</p>
+
+<script type="math/tex; mode=display">\frac{\partial C}{\partial W} = dW^{[l]} =
+\frac{1}{m} dZ^{[l]} A^{[l-1]T}</script>
+
+<h3 id="step-4-derivative-with-respect-to-bl">Step 4: Derivative with Respect to <script type="math/tex">b^{[l]}</script></h3>
+<p>The other moment we’ve been waiting for – the derivative with respect to our bias!</p>
+
+<p>Recall the formula for <script type="math/tex">Z^{[l]}</script> is as follows</p>
+
+<script type="math/tex; mode=display">Z^{[l]} = W^{[l]} A^{[l-1]} + b^{[l]}</script>
+
+<p>Then the derivative is as follows (it’s a regular derivative this time)</p>
+
+<script type="math/tex; mode=display">\frac{dZ^{[l]}}{db^{[l]}} = 1</script>
+
+<p>Then referring back to our chain rule</p>
+
+<script type="math/tex; mode=display">\frac{\partial C}{\partial b} =
+\frac{\partial C}{\partial A}
+\frac{\partial A}{\partial Z}
+\frac{\partial Z}{\partial b}</script>
+
+<p>Since we’ve already computed the derivative with respect to <script type="math/tex">Z^{[l]}</script></p>
+
+<script type="math/tex; mode=display">\frac{\partial C}{\partial b} =
+\frac{\partial C}{\partial Z}
+\frac{\partial Z}{\partial b}</script>
+
+<p>Which gives us the final formula for this step</p>
+
+<script type="math/tex; mode=display">\frac{\partial C}{\partial b} = db^{[l]} =
+\frac{1}{m} dZ^{[l]}</script>
+
+<h3 id="step-5-on-to-the-next-layer">Step 5: On to the Next Layer!</h3>
+<p>Now that we have found the derivative with respect to our weights and our bias, our network can start to learn. However, we don’t want to stop at just one layer, we need the entire network to learn. To reiterate one last time, in forward propagation we go from <script type="math/tex">A^{[l-1]}</script>, to <script type="math/tex">Z^{[l]}</script>, to <script type="math/tex">A^{[l]}</script>, but in backpropagation we go from <script type="math/tex">A^{[l]}</script>, to <script type="math/tex">Z^{[l]}</script>, to <script type="math/tex">A^{[l-1]}</script>. This means we now need to find the derivative with respect to <script type="math/tex">A^{[l-1]}</script>. Then, we repeat steps 2 through 5 until we reach the input layer.</p>
+
+<p>Recall the formula for <script type="math/tex">Z^{[l]}</script> is as follows</p>
+
+<script type="math/tex; mode=display">Z^{[l]} = W^{[l]} A^{[l-1]} + b^{[l]}</script>
+
+<p>Then the derivative is as follows (it’s <em>almost</em> a regular derivative)</p>
+
+<script type="math/tex; mode=display">\frac{dZ^{[l]}}{dA^{[l-1]}} = W^{[l]T}</script>
+
+<p>Then referring back to our chain rule</p>
+
+<script type="math/tex; mode=display">\frac{\partial C}{\partial A^{[l-1]}} =
+\frac{\partial C}{\partial A}
+\frac{\partial A}{\partial Z}
+\frac{\partial Z}{\partial A^{[l-1]}}</script>
+
+<p>Since we’ve already computed the derivative with respect to <script type="math/tex">Z^{[l]}</script></p>
+
+<script type="math/tex; mode=display">\frac{\partial C}{\partial A^{[l-1]}} =
+\frac{\partial C}{\partial Z}
+\frac{\partial Z}{\partial A^{[l-1]}}</script>
+
+<p>Which gives us the final formula for backpropagation</p>
+
+<script type="math/tex; mode=display">\frac{\partial C}{\partial A^{[l-1]}} = dA^{[l-1]} =
+W^{[l]T} dZ^{[l]}</script>
+
+<hr />
+
+<h2 id="finishing-our-backpropagation-implementation">Finishing our Backpropagation Implementation</h2>
+<p>Here is the completed implementation of backpropagation for <code class="highlighter-rouge">network.py</code></p>
+
+<figure class="highlight"><pre><code class="language-python" data-lang="python"><span class="k">def</span> <span class="nf">backpropagation</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">AL</span><span class="p">,</span> <span class="n">Y</span><span class="p">,</span> <span class="n">caches</span><span class="p">):</span>
+    <span class="s">"""Perform backpropagation.
+
+    Arguments:
+        AL: The output of our final layer.
+        Y: The target outputs of our network.
+        caches: The caches output during forward propagation.
+
+    Returns:
+        gradients: A dictionary with the gradients
+    """</span>
+    <span class="c"># Initialize some variables and the gradients dictionary</span>
+    <span class="n">gradients</span> <span class="o">=</span> <span class="p">{}</span>
+    <span class="n">L</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">num_layers</span> <span class="o">-</span> <span class="mi">1</span>
+    <span class="n">m</span> <span class="o">=</span> <span class="n">AL</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+    <span class="n">Y</span> <span class="o">=</span> <span class="n">Y</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="n">AL</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span>
+
+    <span class="c"># Step one: Compute the derivative of the cost function.</span>
+    <span class="n">dAL</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">cost_function</span><span class="o">.</span><span class="n">compute_derivative</span><span class="p">(</span><span class="n">AL</span><span class="p">,</span> <span class="n">Y</span><span class="p">)</span>
+
+    <span class="c"># Perform steps two through five for the output layer</span>
+    <span class="n">cache</span> <span class="o">=</span> <span class="n">caches</span><span class="p">[</span><span class="n">L</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+    <span class="n">activation</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">activations</span><span class="p">[</span><span class="n">L</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+    <span class="n">gradients</span><span class="p">[</span><span class="s">"dA"</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">L</span><span class="o">-</span><span class="mi">1</span><span class="p">)],</span> <span class="n">gradients</span><span class="p">[</span><span class="s">"dW"</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">L</span><span class="p">)],</span> <span class="n">gradients</span><span class="p">[</span><span class="s">"db"</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">L</span><span class="p">)]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">backward_step</span><span class="p">(</span><span class="n">dAL</span><span class="p">,</span> <span class="n">cache</span><span class="p">,</span> <span class="n">activation</span><span class="p">)</span>
+
+    <span class="c"># All other layers</span>
+    <span class="k">for</span> <span class="n">l</span> <span class="ow">in</span> <span class="nb">reversed</span><span class="p">(</span><span class="nb">range</span><span class="p">(</span><span class="n">L</span><span class="o">-</span><span class="mi">1</span><span class="p">)):</span>
+        <span class="n">cache</span> <span class="o">=</span> <span class="n">caches</span><span class="p">[</span><span class="n">l</span><span class="p">]</span>
+        <span class="n">activation</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">activations</span><span class="p">[</span><span class="n">l</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+        <span class="n">dA_prev</span><span class="p">,</span> <span class="n">dW</span><span class="p">,</span> <span class="n">db</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">backward</span><span class="p">(</span><span class="n">gradients</span><span class="p">[</span><span class="s">"dA"</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">l</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)],</span> <span class="n">current_cache</span><span class="p">,</span> <span class="n">activation</span><span class="p">)</span>
+        <span class="n">gradients</span><span class="p">[</span><span class="s">"dA"</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">l</span><span class="p">)]</span> <span class="o">=</span> <span class="n">dA_prev</span>
+        <span class="n">gradients</span><span class="p">[</span><span class="s">"dW"</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">l</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)]</span> <span class="o">=</span> <span class="n">dW</span>
+        <span class="n">gradients</span><span class="p">[</span><span class="s">"db"</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">l</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)]</span> <span class="o">=</span> <span class="n">db</span>
+
+    <span class="k">return</span> <span class="n">gradients</span>
+
+
+<span class="k">def</span> <span class="nf">backward_step</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">dA</span><span class="p">,</span> <span class="n">cache</span><span class="p">,</span> <span class="n">activation</span><span class="p">):</span>
+    <span class="s">"""Perform backpropagation for a single layer.
+
+    Arguments:
+        dA: Gradient for the current layer l
+        cache: A tuple (W, A_prev, b, Z, A)
+        activation: The activation function for the current layer.
+
+    Returns:
+        dA_prev: Gradient with respect to the previous activations
+        dW: The gradient of the cost with respect to W
+        db: Gradient of the cost with respect to b
+    """</span>
+    <span class="p">(</span><span class="n">W</span><span class="p">,</span> <span class="n">A_prev</span><span class="p">,</span> <span class="n">b</span><span class="p">,</span> <span class="n">Z</span><span class="p">,</span> <span class="n">A</span><span class="p">)</span> <span class="o">=</span> <span class="n">cache</span>
+    <span class="n">m</span> <span class="o">=</span> <span class="n">A_prev</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+    <span class="n">dZ</span> <span class="o">=</span> <span class="bp">None</span>
+
+    <span class="c"># Compute dZ</span>
+    <span class="n">dZ</span> <span class="o">=</span> <span class="n">dA</span> <span class="o">*</span> <span class="n">activation</span><span class="o">.</span><span class="n">derivative</span><span class="p">(</span><span class="n">Z</span><span class="p">)</span>
+
+    <span class="c"># Compute dA_prev, dW, and db</span>
+    <span class="n">dW</span> <span class="o">=</span> <span class="p">(</span><span class="mi">1</span><span class="o">/</span><span class="n">m</span><span class="p">)</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">dZ</span><span class="p">,</span> <span class="n">A_prev</span><span class="o">.</span><span class="n">T</span><span class="p">)</span>
+    <span class="n">db</span> <span class="o">=</span> <span class="p">(</span><span class="mi">1</span><span class="o">/</span><span class="n">m</span><span class="p">)</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="nb">sum</span><span class="p">(</span><span class="n">dZ</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">keepdims</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+    <span class="n">dA_prev</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">W</span><span class="o">.</span><span class="n">T</span><span class="p">,</span> <span class="n">dZ</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">dA_prev</span><span class="p">,</span> <span class="n">dW</span><span class="p">,</span> <span class="n">db</span></code></pre></figure>
+
+<hr />
+
+<h2 id="after-reading-this-post-1">After Reading This Post</h2>
+<p>After reading this post, you should be able to answer the following questions.</p>
+<ol>
+  <li>What is a cost function?</li>
+  <li>What properties should a cost function have?</li>
+  <li>What are the backpropagation equations?</li>
+  <li>What outputs can we cache during forward propagation for use in backpropagation?</li>
+</ol>
+
+<h3 id="what-is-a-cost-function">What is a cost function?</h3>
+<p>A cost function measures how “right” or “wrong” our network was on the training set. A larger value means our network was really wrong, and a smaller value means our network. Our goal is to minimize the cost function – and that’s what we mean when we say our network is “learning.”</p>
+
+<h3 id="what-properties-should-a-cost-function-have">What properties should a cost function have?</h3>
+<p>A cost function should have these two properties</p>
+<ol>
+  <li>It should be an average of the errors on each individual example</li>
+  <li>It should be a function of the weights and biases in our network</li>
+</ol>
+
+<h3 id="what-are-the-backpropagation-equations">What are the backpropagation equations?</h3>
+<p>The first equation is derivative of the cost function with respect to our outputs. This will change depending on what cost function we use. For cross-entropy cost we will use the following formula</p>
+
+<script type="math/tex; mode=display">\frac{\partial C}{\partial A^{[L]}} =
+- \bigg( \frac{Y}{A^{[L]}} - \frac{(1 - Y)}{1 - A^{[L]}} \bigg)</script>
+
+<p>The second equation is the derivative with respect to <script type="math/tex">Z^{[l]}</script></p>
+
+<script type="math/tex; mode=display">\frac{\partial C}{\partial Z} = dZ^{[l]} =
+dA^{[l]} * g'(Z^{[l]})</script>
+
+<p>The third equation is the derivative with respect to <script type="math/tex">W^{[l]}</script></p>
+
+<script type="math/tex; mode=display">\frac{\partial C}{\partial W} = dW^{[l]} =
+\frac{1}{m} dZ^{[l]} A^{[l-1]T}</script>
+
+<p>The fourth equation is the derivative with respect to <script type="math/tex">b^{[l]}</script></p>
+
+<script type="math/tex; mode=display">\frac{\partial C}{\partial b} = db^{[l]} =
+\frac{1}{m} dZ^{[l]}</script>
+
+<p>The fifth equation is the derivative with respect to <script type="math/tex">A^{[l-1]}</script></p>
+
+<script type="math/tex; mode=display">\frac{\partial C}{\partial A^{[l-1]}} = dA^{[l-1]} =
+W^{[l]T} dZ^{[l]}</script>
+
+<h3 id="what-outputs-can-we-cache-during-forward-propagation">What outputs can we cache during forward propagation?</h3>
+<p>Looking at the above equations, these are the values that we computed during forward propagation and reused in backpropagation. During training, we should cache these values for use in the backpropagation phase.</p>
+<ul>
+  <li><script type="math/tex">Z^{[l]}</script>: The pre-activation output of each layer</li>
+  <li><script type="math/tex">A^{[l]}</script>: The activations of each layer</li>
+  <li><script type="math/tex">W^{[l]}</script>: The weights of our network</li>
+</ul>
+
+<hr />
+
+<h2 id="coming-up">Coming Up</h2>
+<p>Today, we implemented the backpropagation algorithm. There is one problem though – we never used it to updates the weights and biases! In the next post, we are going to finish implementing our neural network by implementing the update rule and the training algorithm. After that we are going to use our neural network to recognize handwritten digits.</p>
+
+
+</div>
+
+<div class="pagination">
+  
+  
+    <a href="/2018-10-14/forward-propagation" class="right arrow">&#8594;</a>
+  
+
+  <a href="#" class="top">Top</a>
+</div>
+
+    </main>
+
+    <footer>
+      <span>
+        Written by <a href="http://JosephBergman.com/">Joseph Bergman</a>.
+        
+            Published on <time datetime="2018-10-15 00:00:00 +0900">October 15, 2018</time>.
+        
+        
+      </span>
+    </footer>
+  </body>
+</html>
