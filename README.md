@@ -13,8 +13,10 @@
 ### Visualizations with Convnets
 + Class Map Activations: Inside the Black Box (In progress)
 + [Implementing DeepDream with Keras](https://github.com/JosephBergman/deep-learning/blob/master/cnn05/cnn05.ipynb)
-+ Neural Style Transfer (TBD) 
-+ Variational Autoencoders (TBD)
++ [Neural Style Transfer](https://github.com/JosephBergman/deep-learning/blob/master/cnn06/cnn06.ipynb)
+
+### Appendix 
++ Free GPUs with Google Colab (TBD)
 
 ### Final Project
 + Korean Character Recognition (In progress)
