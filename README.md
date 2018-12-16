@@ -15,8 +15,8 @@
 + [Implementing DeepDream with Keras](https://github.com/JosephBergman/deep-learning/blob/master/cnn05/cnn05.ipynb)
 + [Neural Style Transfer](https://github.com/JosephBergman/deep-learning/blob/master/cnn06/cnn06.ipynb)
 
-### Appendix 
-+ Free GPUs with Google Colab (TBD)
+### Configuring a Deep Learning Environment 
++ [Free GPUs with Google Colab](https://github.com/JosephBergman/deep-learning/blob/master/conf/conf.ipynb)
 
 ### Final Project
 + Korean Character Recognition (In progress)
