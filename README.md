@@ -11,9 +11,9 @@
 + [Improving our Convnet with Pretrained Models](https://github.com/JosephBergman/deep-learning/blob/master/cnn03/cnn03.ipynb)
 
 ### Visualizations with Convnets
-+ Class Map Activations: Inside the Black Box (In progress)
++ [Creating Heatmaps for Visualizing Convnets](https://github.com/JosephBergman/deep-learning/blob/master/cnn04/cnn04.ipynb)
 + [Implementing DeepDream with Keras](https://github.com/JosephBergman/deep-learning/blob/master/cnn05/cnn05.ipynb)
-+ [Neural Style Transfer](https://github.com/JosephBergman/deep-learning/blob/master/cnn06/cnn06.ipynb)
++ [Neural Style Transfer with Keras](https://github.com/JosephBergman/deep-learning/blob/master/cnn06/cnn06.ipynb)
 
 ### Configuring a Deep Learning Environment 
 + [Free GPUs with Google Colab](https://github.com/JosephBergman/deep-learning/blob/master/conf/conf.ipynb)
