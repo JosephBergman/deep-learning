@@ -3,7 +3,7 @@
 ### Fully Connected Neural Networks 
 + [Introduction to Deep Learning with Keras](https://github.com/JosephBergman/deep-learning/blob/master/proj01/proj01.ipynb)
 + [Initialization, Optimization, and Regularization](https://github.com/JosephBergman/deep-learning/blob/master/proj02/proj02.ipynb)
-+ Implementing a Neural Network from Scratch with Autograd (In progress)
++ [Implementing a Neural Network from Scratch](https://github.com/JosephBergman/deep-learning/blob/master/proj03/proj03.ipynb)
 
 ### Introduction to Convolutional Neural Networks 
 + [Introduction to Convolutional Neural Networks](https://github.com/JosephBergman/deep-learning/blob/master/cnn01/cnn01.ipynb)
